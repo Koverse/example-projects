@@ -2,13 +2,17 @@
 
 ## Setup
 
+`docker build -t koverse/airflow .`
+
 `docker-compose up airflow-init`
 
 `docker-compose up`
 
 ## Installation
 
-`/dags`
+1. Setup application with KDP4.
+
+Place DAG files within `/dags`.
 
 ## Options
 

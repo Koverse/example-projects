@@ -18,13 +18,28 @@
 # under the License.
 
 import os
+import json
+
 from airflow import configuration as conf
+from airflow.www.security import AirflowSecurityManager
 from flask_appbuilder.security.manager import AUTH_DB
 # from flask_appbuilder.security.manager import AUTH_LDAP
 from flask_appbuilder.security.manager import AUTH_OAUTH
 # from flask_appbuilder.security.manager import AUTH_OID
-# from flask_appbuilder.security.manager import AUTH_REMOTE_USER
+# from flask_appbuilder.security.manager import AUTH_REMOTE_US
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+class KDPSecurity(AirflowSecurityManager):
+    def oauth_user_info(self, provider, response=None):
+        if provider == "Koverse Data Platform":
+            print(self.appbuilder.sm.oauth_remotes[provider])
+            print(self.appbuilder)
+            #me = self.appbuilder.sm.oauth_remotes[provider].get("userInfo")
+            #data = json.loads(me.raw_data)
+            print("User info from aws_cognito: {0}".format(self.appbuilder.sm.oauth_remotes[provider].get("userinfo")))
+            return {"username": "garrett criss", "email": "garrettcriss@koverse.com"}
+        else:
+            return {}
 
 # The SQLAlchemy connection string.
 SQLALCHEMY_DATABASE_URI = conf.get('core', 'SQL_ALCHEMY_CONN')
@@ -54,10 +69,10 @@ AUTH_TYPE = AUTH_OAUTH
 # AUTH_ROLE_PUBLIC = 'Public'
 
 # Will allow user self registration
-# AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION = True
 
 # The default user self registration role
-# AUTH_USER_REGISTRATION_ROLE = "Public"
+AUTH_USER_REGISTRATION_ROLE = "Admin"
 
 # When using OAuth Auth, uncomment to setup provider(s) info
 # Google OAuth example:
@@ -66,15 +81,15 @@ OAUTH_PROVIDERS = [{
     'token_key':'access_token',
     'icon':'fa-lock',
         'remote_app': {
-            'base_url':'https://koverse.dev/oauth2/',
+            'base_url':'https://api.koverse.dev/oauth2/',
             'request_token_params':{
                 'scope': 'email profile'
             },
             'access_token_url':'https://api.koverse.dev/oauth2/token',
             'authorize_url':'https://api.koverse.dev/oauth2/auth',
             'request_token_url': None,
-            'consumer_key': 'a434c2a346892cd120899fdd19631b765bb8d32ced24a3c4bb1374e31dcb82a2',
-            'consumer_secret': '4d7b3c4cf6db494bad4e495d53607f3bb9ff0cb9a2fd63984c19b37443f78730',
+            'client_id': '4cf1f40acd2cc63b076df80ad5c234cfd0fbc79418703f1a9f67ad6fa2b4f832',
+            'client_secret': 'a07a394c67435990aeddb1218360cc23166a767d06e349e53359b869a053c311',
         }
 }]
 
@@ -105,4 +120,4 @@ OPENID_PROVIDERS = [
 # APP_THEME = "bootstrap-theme.css"  # default bootstrap
 
 # from fab_oidc.security import AirflowOIDCSecurityManager
-# SECURITY_MANAGER_CLASS = AirflowOIDCSecurityManager
+SECURITY_MANAGER_CLASS = KDPSecurity

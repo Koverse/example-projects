@@ -19,6 +19,7 @@
 
 import os
 import json
+import requests
 
 from airflow import configuration as conf
 from airflow.www.security import AirflowSecurityManager
@@ -32,12 +33,15 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class KDPSecurity(AirflowSecurityManager):
     def oauth_user_info(self, provider, response=None):
         if provider == "Koverse Data Platform":
-            print(self.appbuilder.sm.oauth_remotes[provider])
-            print(self.appbuilder)
-            #me = self.appbuilder.sm.oauth_remotes[provider].get("userInfo")
-            #data = json.loads(me.raw_data)
-            print("User info from aws_cognito: {0}".format(self.appbuilder.sm.oauth_remotes[provider].get("userinfo")))
-            return {"username": "garrett criss", "email": "garrettcriss@koverse.com"}
+            
+            print(response['access_token'])
+
+            bearer_token = 'Bearer ' + response['access_token']
+            headers = {'Authorization': bearer_token}
+            user_request = requests.get('https://api.koverse.dev/me', headers=headers)
+            user = json.loads(user_request.headers['Koverse-User'])
+
+            return {"username": user['displayName'], "email": user['email']}
         else:
             return {}
 
@@ -81,7 +85,7 @@ OAUTH_PROVIDERS = [{
     'token_key':'access_token',
     'icon':'fa-lock',
         'remote_app': {
-            'base_url':'https://api.koverse.dev/oauth2/',
+            'api_base_url':'https://api.koverse.dev/oauth2/',
             'request_token_params':{
                 'scope': 'email profile'
             },

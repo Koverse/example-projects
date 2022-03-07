@@ -7,4 +7,4 @@ RUN /usr/local/bin/python -m pip install --upgrade pip && \
     pip3 install "apache-airflow[password]" && \
     pip3 install "apache-airflow[postgres]" && \
     pip3 install "apache-airflow[kubernetes]" && \
-    pip3 install oauth2client authlib
+    pip3 install oauth2client authlib requests

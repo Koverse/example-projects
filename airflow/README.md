@@ -11,8 +11,17 @@
 ## Installation
 
 1. Setup application with KDP4.
+Redirect URL `http://localhost:8080/oauth-authorized/Koverse%20Data%20Platform`
+
+2. Client ID and Secret
+
+Environment Variables:
+Koverse API Url
+Client ID
+Client Secret
 
 Place DAG files within `/dags`.
+
 
 ## Options
 

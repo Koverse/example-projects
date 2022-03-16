@@ -4,12 +4,13 @@ import csv
 import json
 import requests
 
+from airflow.models import Variable
 from airflow.decorators import dag, task
 
 CSV_PATH = '/opt/airflow/dags/files/employees.csv'
 
 DATASET_ID = '1430423f-71f1-4e9c-8ec2-9be6f758d856'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImNvbnJhZGZyZWVkQGtvdmVyc2UuY29tIiwiaWF0IjoxNjQ1ODAyNjYxLCJleHAiOjE2NDU4ODkwNjEsImlzcyI6ImtvdmVyc2UiLCJzdWIiOiJlZjgxMTM3Zi1hNzJjLTQ5NWQtYjhhNC03MjFlYzQ3ZmQ3M2YiLCJqdGkiOiIzNGZmYTdkOS03YTJmLTQ4MzUtODk1Yy02NzlmN2VlYzQ2MTQifQ.5cLgaHfbKvo4TifG7yTtxexB368L0FGqsYeDkirMog8'
+TOKEN = Variable.get("kdp_access_token")
 
 def get_json():
     data = []

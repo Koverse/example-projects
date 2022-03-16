@@ -23,6 +23,7 @@ import requests
 
 from airflow import configuration as conf
 from airflow.www.security import AirflowSecurityManager
+from airflow.models import Variable
 from flask_appbuilder.security.manager import AUTH_DB
 # from flask_appbuilder.security.manager import AUTH_LDAP
 from flask_appbuilder.security.manager import AUTH_OAUTH
@@ -38,6 +39,7 @@ class KDPSecurity(AirflowSecurityManager):
 
             bearer_token = 'Bearer ' + response['access_token']
             headers = {'Authorization': bearer_token}
+            Variable.set("kdp_access_token", bearer_token)
             user_request = requests.get('https://api.koverse.dev/me', headers=headers)
             user = json.loads(user_request.headers['Koverse-User'])
 

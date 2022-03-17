@@ -3,7 +3,7 @@
 This repository contains a docker-compose definition for launching Jupyter Notebook.
 
 ## Jupyter Token:
-Be sure to set your JUPYTER_TOKEN in your yaml file, if you don't want to leave it as is
+Be sure to set your ```JUPYTER_TOKEN``` in your yaml file, if you don't want to leave it as is
 
 ## Control the container:
 
@@ -11,5 +11,8 @@ Be sure to set your JUPYTER_TOKEN in your yaml file, if you don't want to leave 
 * ```docker-compose down``` destroys the container
 
 
+## Launch your Notebook:
+
+* ```localhost:8888/lab``` will launch your notebook, where you will be prompted to enter your ```JUPYTER_TOKEN```
 
 

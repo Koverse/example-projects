@@ -40,7 +40,7 @@ class KDPSecurity(AirflowSecurityManager):
             bearer_token = 'Bearer ' + response['access_token']
             headers = {'Authorization': bearer_token}
             Variable.set("kdp_access_token", bearer_token)
-            user_request = requests.get('https://api.koverse.dev/me', headers=headers)
+            user_request = requests.get('https://api.dev.koverse.com/me', headers=headers)
             user = json.loads(user_request.headers['Koverse-User'])
 
             return {"username": user['displayName'], "email": user['email']}
@@ -87,15 +87,15 @@ OAUTH_PROVIDERS = [{
     'token_key':'access_token',
     'icon':'fa-lock',
         'remote_app': {
-            'api_base_url':'https://api.koverse.dev/oauth2/',
+            'api_base_url':'https://api.dev.koverse.com/oauth2/',
             'request_token_params':{
                 'scope': 'email profile'
             },
-            'access_token_url':'https://api.koverse.dev/oauth2/token',
-            'authorize_url':'https://api.koverse.dev/oauth2/auth',
+            'access_token_url':'https://api.dev.koverse.com/oauth2/token',
+            'authorize_url':'https://api.dev.koverse.com/oauth2/auth',
             'request_token_url': None,
-            'client_id': '4cf1f40acd2cc63b076df80ad5c234cfd0fbc79418703f1a9f67ad6fa2b4f832',
-            'client_secret': 'a07a394c67435990aeddb1218360cc23166a767d06e349e53359b869a053c311',
+            'client_id': os.environ.get('KDP4_CLIENT_ID'),
+            'client_secret': os.environ.get('KDP4_CLIENT_SECRET'),
         }
 }]
 

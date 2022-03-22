@@ -94,8 +94,8 @@ OAUTH_PROVIDERS = [{
             'access_token_url':'https://api.dev.koverse.com/oauth2/token',
             'authorize_url':'https://api.dev.koverse.com/oauth2/auth',
             'request_token_url': None,
-            'client_id': '747393aaba8efe107e092db941b695650c68a2ad84134167e3de89a27188e333',
-            'client_secret': 'c5b60293c0bfd852204c7a4c29b5d9bc4146895ff2fb77e70eb27c72a4964e98',
+            'client_id': os.environ.get('KDP4_CLIENT_ID'),
+            'client_secret': os.environ.get('KDP4_CLIENT_SECRET'),
         }
 }]
 

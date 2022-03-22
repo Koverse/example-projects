@@ -17,6 +17,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+# Setup
+
+`docker-compose -f docker-compose.yml up`
+
+Navigate to `localhost:8088`
+
+# Helpful - Follow Instructions to Initialize a local Superset Instance
+
+https://hub.docker.com/r/apache/superset
+
 # Superset
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

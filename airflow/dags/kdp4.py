@@ -1,5 +1,5 @@
 import datetime
-import pendulum
+# import pendulum
 import csv
 import json
 import requests
@@ -9,7 +9,7 @@ from airflow.decorators import dag, task
 
 CSV_PATH = '/opt/airflow/dags/files/employees.csv'
 
-DATASET_ID = '1430423f-71f1-4e9c-8ec2-9be6f758d856'
+DATASET_ID = 'e7be3620-9d16-4e42-91a9-50de15b3d692'
 TOKEN = Variable.get("kdp_access_token")
 
 def get_json():
@@ -22,16 +22,18 @@ def get_json():
     return json.dumps(data)
 
 def write_to_kdp4(jsonData, datasetId, token):
-    url = 'https://api.dev.koverse.dev/write/' + datasetId
+    url = 'https://api.dev.koverse.com/write/' + datasetId
     authValue = 'Bearer ' + token
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}
+    
+    print(url)
     response = requests.post(url, data=jsonData, headers=headers, timeout=10)
     return response
 
 @dag(
     schedule_interval="0 0 * * *",
-    start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
+    start_date=datetime.datetime(2021, 1, 1),
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
 )
@@ -42,7 +44,6 @@ def Etl():
 
         response = requests.request("GET", url)
         #print("response: %s", response.text)
-
         with open(CSV_PATH, "w") as file:
             file.write(response.text)
             print("wrote file to %s", CSV_PATH)
@@ -52,8 +53,9 @@ def Etl():
     def write_data():
         data = get_json()
         response = write_to_kdp4(data, DATASET_ID, TOKEN)
-        print("status = %d", response.status_code)
-        if res.status_code == 200:
+        print(response.content)
+        print("status: ", response)
+        if response.status_code == 200:
             return 0
         else:
             return 1

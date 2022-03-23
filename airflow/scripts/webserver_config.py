@@ -39,9 +39,9 @@ class KDPSecurity(AirflowSecurityManager):
 
             bearer_token = 'Bearer ' + response['access_token']
             headers = {'Authorization': bearer_token}
-            Variable.set("kdp_access_token", bearer_token)
             user_request = requests.get('https://api.dev.koverse.com/me', headers=headers)
             user = json.loads(user_request.headers['Koverse-User'])
+            Variable.set("kdp_access_token", user_request.headers['Koverse-Jwt'])
 
             return {"username": user['displayName'], "email": user['email']}
         else:

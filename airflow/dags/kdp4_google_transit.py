@@ -10,7 +10,7 @@ from google.transit import gtfs_realtime_pb2
 
 from protobuf_to_dict import protobuf_to_dict
 
-DATASET_ID = 'b690259f-5dd9-4581-a8e9-3a0a746664b1'
+DATASET_ID = '991ea482-db37-4ad6-b41b-939f8b85a29a'
 TOKEN = Variable.get("kdp_access_token")
 
 
@@ -43,8 +43,7 @@ def denver_protobuf():
         
         data_entries = []
 
-        # entry_fields = ["latitude", "longitude", "bearing", "speed", "routeId", "time", "vehicleId"]
-
+        # TODO set up schema definition in more sane way
         entry_fields ={"vehicle":
                 {"position":{"latitude", "longitude", "bearing"},
                 "trip":{"route_id"},
@@ -95,6 +94,5 @@ def denver_protobuf():
             return 1
 
     get_and_write_to_kdp4()
-
 
 dag = denver_protobuf()

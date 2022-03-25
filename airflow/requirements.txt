@@ -1,0 +1,15 @@
+###### Airflow Dependencies ######
+apache-airflow[jdbc]
+apache-airflow[ldap]
+apache-airflow[password]
+apache-airflow[postgres]
+apache-airflow[kubernetes]
+
+###### Login Dependencies ######
+oauth2client
+authlib
+requests
+
+###### Dag Dependencies ######
+gtfs-realtime-bindings
+protobuf3-to-dict

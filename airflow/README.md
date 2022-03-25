@@ -21,7 +21,8 @@ First build the custom image that contains the necessary Python packages on top 
 
 `docker build -t koverse/airflow .`
 
-The airflow-init command only needs to be run once, this will generate the database migrations neccessary to use airflow
+The airflow-init command only needs to be run once, this will generate the database migrations neccessary to use airflow.
+
 `docker-compose up airflow-init`
 
 ### Run airflow
@@ -30,6 +31,11 @@ The airflow-init command only needs to be run once, this will generate the datab
 Once docker compose finishes starting up access Airflow at `localhost:8080`
 
 ## Options
+
+### Adding Python packages to Airflow
+Python packages are installed on the initial container build. These are maintained in the `requirements.txt` to add any additional packages for custom dags these can be appended into this file. 
+
+## DAGS
 
 We have included a set of sample DAGs within the /dags directory that can serve as a jump off point for creating your own functionality within Airflow on top of KDP4
 

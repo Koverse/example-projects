@@ -1,12 +1,14 @@
 version:  '3.7'
 services:
   datascience-notebook:
-      image: jupyter/base-notebook
+      image: jupyter/datascience-notebook
       ports:
       - 8888:8888
       environment:
             JUPYTER_TOKEN: "docker"
+            KDP4_CLIENT_ID: '${KDP_CLIENT_ID}'
+            KDP4_CLIENT_SECRET: '${KDP_CLIENT_SECRET}'
       volumes:
         - ./:/home/jovyan/work
   
-      container_name:   jupyter_notebook
+      container_name:  jupyter_notebook

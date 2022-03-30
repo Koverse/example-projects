@@ -1,0 +1,8 @@
+###### Login Dependencies ######
+Authlib
+oauthenticator
+requests
+jupyterhub
+tornado
+jupyter_core
+

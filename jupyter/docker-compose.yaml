@@ -1,7 +1,7 @@
 version:  '3.7'
 services:
   datascience-notebook:
-      image: jupyter/datascience-notebook
+      image: jupyterdatascienceimage
       ports:
       - 8888:8888
       environment:
@@ -11,4 +11,4 @@ services:
       volumes:
         - ./:/home/jovyan/work
   
-      container_name:  jupyter_notebook
+      container_name:  jupyterdatasciencecontainer

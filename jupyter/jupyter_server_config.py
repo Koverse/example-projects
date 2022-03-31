@@ -28,11 +28,94 @@ c.ServerApp.port = 8888
 c.ServerApp.open_browser = False
 
 
+#####################
+
+
+class MyServiceMixin(OAuth2Mixin):
+    # authorize is the URL users are redirected to authorize your service
+    _OAUTH_AUTHORIZE_URL = "https://api.dev.koverse.com"
+    #/oauth2/auth"
+    # token is the URL JupyterHub accesses to finish the OAuth process
+    _OAUTH_ACCESS_TOKEN_URL = "https://api.dev.koverse.com/oauth2/token"
+
+
+class MyServiceLoginHandler(OAuthLoginHandler, MyServiceMixin):
+    pass
+
+
+class MyServiceOAuthenticator(OAuthenticator):
+    # login_service is the text displayed on the "Login with..." button
+    login_service = "Koverse Data Platform"
+    #callback_handler = MyServiceOAuthenticator
+    login_handler = MyServiceLoginHandler
+
+    ###########it's not the authenticate function to override ##########
+    def authenticate(self, handler, data=None):
+        if handler == "Koverse Data Platform":
+            print(data['access_token'])
+
+        code = handler.get_argument("code")
+        # TODO: Configure the curl_httpclient for tornado
+        http_client = AsyncHTTPClient()
+        # Exchange the OAuth code for an Access Token
+        # this is the TOKEN URL in your provider
+        params = dict(
+            client_id=self.client_id, client_secret=self.client_secret, code=code
+        )
+        #correct token url????
+        url = url_concat("https://api.dev.koverse.com/oauth2/token", params)
+
+        req = HTTPRequest(
+            url, method="POST", headers={"Accept": "application/json"}, body=''
+        )
+
+        resp = await http_client.fetch(req)
+        resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+
+        if 'access_token' in resp_json:
+            access_token = resp_json['access_token']
+        elif 'error_description' in resp_json:
+            raise HTTPError(
+                403,
+                "An access token was not returned: {}".format(
+                    resp_json['error_description']
+                ),
+            )
+        else:
+            raise HTTPError(500, "Bad response: {}".format(resp))
 
 
 
+        bearer_token = 'Bearer ' + data['access_token']
+        headers = {'Authorization': bearer_token}
+        user_request = requests.get('https://api.dev.koverse.com/me', headers=headers)
+        user = json.loads(user_request.headers['Koverse-User'])
+        #Variable.set("kdp_access_token", user_request.headers['Koverse-Jwt'])
+        resp = await http_client.fetch(user_request)
+        resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+
+        # check the documentation for what field contains a unique username
+        # it might not be the 'username'!
+        username = resp_json["displayName"]
+
+        if not username:
+            # return None means that no user is authenticated
+            # and login has failed
+            return None
+
+            # 'name' is the JupyterHub username
+            user_info = {"name": username}
+
+        return {"name": user['displayName'], "email": user['email']
+                    , "auth_state" : {}}
 
 
+
+class LocalMyServiceOAuthenticator(LocalAuthenticator, MyServiceOAuthenticator):
+    """A version that mixes in local system user creation"""
+    pass
+
+c.JupyterHub.authenticator_class = MyServiceOAuthenticator
 
 
 
@@ -79,4 +162,21 @@ if "GEN_CERT" in os.environ:
 # the environment
 if "NB_UMASK" in os.environ:
     os.umask(int(os.environ["NB_UMASK"], 8))
+
+# OAUTH_PROVIDERS = [{
+# 	'name':'Koverse Data Platform',
+#     'token_key':'access_token',
+#     'icon':'fa-lock',
+#         'remote_app': {
+#             'api_base_url':'https://api.dev.koverse.com/oauth2/',
+#             'request_token_params':{
+#                 'scope': 'email profile'
+#             },
+#             'access_token_url':'https://api.dev.koverse.com/oauth2/token',
+#             'authorize_url':'https://api.dev.koverse.com/oauth2/auth',
+#             'request_token_url': None,
+#             'client_id': os.environ.get('KDP4_CLIENT_ID'),
+#             'client_secret': os.environ.get('KDP4_CLIENT_SECRET'),
+#         }
+# }]
 

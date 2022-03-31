@@ -6,8 +6,8 @@ This repository contains a docker-compose definition for launching Jupyter Noteb
 Be sure to set your ```JUPYTER_TOKEN``` in your yaml file, if you don't want to leave it as is
 
 ## Control the container:
-
-* ```docker-compose up -d --build``` mounts the directory and starts the container
+* ```docker build -t jupyterdatascienceimage .   ```
+* ```docker-compose up ``` mounts the directory and starts the container
 * ```docker-compose down``` destroys the container
 
 

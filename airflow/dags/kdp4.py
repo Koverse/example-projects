@@ -52,6 +52,7 @@ def Etl():
     @task
     def write_data():
         data = get_json()
+        print(data)
         response = write_to_kdp4(data, DATASET_ID, TOKEN)
         print(response.content)
         print("status: ", response)

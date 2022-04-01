@@ -13,3 +13,6 @@ requests
 ###### Dag Dependencies ######
 gtfs-realtime-bindings
 protobuf3-to-dict
+numpy
+pandas
+

@@ -31,8 +31,8 @@ c.ServerApp.open_browser = False
 c.JupyterHub.authenticator_class = "generic"
 
 c.GenericOAuthenticator.oauth_callback_url = 'https://{host}/hub/oauth_callback'
-c.GenericOAuthenticator.client_id = '87afb13e163be2b525226830e18b03d36ea17db2af56238e790a78eb32e1d437'
-c.GenericOAuthenticator.client_secret = '88a4fc2a2e8a11c9b2a14d79c8661d4fe3a430c9fdfb60879fab68ced2f8627b'
+c.GenericOAuthenticator.client_id = 'fa3a5acf13722f7195a25ab09cac2e1ffd39fb9b7756f132f1827bd1bf4a6121'
+c.GenericOAuthenticator.client_secret = 'f28f0e89f0244169a738853835ad4b5c32bbbd361aecc755cd6d59500b818388'
 c.GenericOAuthenticator.login_service = 'KDP'
 #c.GenericOAuthenticator.userdata_url = 'url-retrieving-user-data-with-access-token'
 c.GenericOAuthenticator.token_url = 'https://api.dev.koverse.com/login/oauth/access_token'

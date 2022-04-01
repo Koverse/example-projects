@@ -7,5 +7,5 @@ RUN mamba install --yes --file /tmp/requirements.txt && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
-#might need this to pass token along
 ADD ./jupyter_server_config.py /home/jovyan/.jupyter/jupyter_server_config.py
+COPY jupyter_server_config.py /etc/jupyter/

@@ -10,5 +10,7 @@ services:
             KDP4_CLIENT_SECRET: '${KDP_CLIENT_SECRET}'
       volumes:
         - ./:/home/jovyan/work
+        - ./jupyter_server_config.py:/home/jovyan/.jupyter/jupyter_server_config.py
+        - ./jupyter_server_config.py:/etc/jupyter/jupyter_server_config.py
   
       container_name:  jupyterdatasciencecontainer

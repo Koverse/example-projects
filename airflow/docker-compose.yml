@@ -53,6 +53,7 @@ x-airflow-common:
     KDP4_CLIENT_SECRET: '${KDP_CLIENT_SECRET}'
   volumes:
     - ./dags:/opt/airflow/dags
+    - ./notebooks:/opt/airflow/notebooks
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./scripts/webserver_config.py:/opt/airflow/webserver_config.py

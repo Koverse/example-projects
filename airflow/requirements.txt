@@ -16,3 +16,7 @@ protobuf3-to-dict
 numpy
 pandas
 
+###### Papermill Dependencies ######
+papermill
+scrapbook
+apache-airflow-providers-papermill

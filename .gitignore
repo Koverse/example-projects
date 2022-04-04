@@ -3,3 +3,12 @@ airflow/dags/__pycache__/*
 __pycache__
 
 **/logs/scheduler
+
+/oauth-skeleton2/client/node_modules
+/oauth-skeleton2/server/node_modules
+/oauth-skeleton2/client/.DS_Store
+/oauth-skeleton2/server/.DS_Store
+/oauth-skeleton2/.DS_Store
+
+# production
+/oauth-skeleton2/client/build

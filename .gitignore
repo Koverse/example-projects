@@ -9,6 +9,7 @@ __pycache__
 /oauth-skeleton2/client/.DS_Store
 /oauth-skeleton2/server/.DS_Store
 /oauth-skeleton2/.DS_Store
+.DS_Store
 
 # production
 /oauth-skeleton2/client/build

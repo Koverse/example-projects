@@ -21,9 +21,9 @@ function App() {
           </>
           
         }
-          {loggedIn &&
-            <Route path='/auth/success' element={<Homepage/>} />
-          }
+        
+        <Route path='/auth/success' element={<Homepage/>} />
+      
         </Routes>
       </Router>
     

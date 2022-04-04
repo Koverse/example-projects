@@ -33,7 +33,7 @@ const AuthCheck = () => {
         {
             console.log("Unable to call callback function") //unable to login
             console.log(loggedIn)
-            navigate("/");
+            navigate("/auth/success");
             window.location.reload();
         });
       }, []);

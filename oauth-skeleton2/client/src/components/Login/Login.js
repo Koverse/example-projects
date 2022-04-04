@@ -1,12 +1,19 @@
 import React, { useContext} from 'react';
 import { OauthSender } from 'react-oauth-flow';
 import AuthContext from "../Auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
 
    const {loggedIn} = useContext(AuthContext);
    console.log("LoggedInState: ")
    console.log(loggedIn)
+   const navigate = useNavigate();
+
+   if (loggedIn === true){
+    navigate("/auth/success");
+    window.location.reload();
+   }
 
     return (
         

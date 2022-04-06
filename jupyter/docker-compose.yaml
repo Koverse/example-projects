@@ -1,11 +1,11 @@
 version:  '3.7'
 services:
-  datascience-notebook:
+  jupyter-base-notebook:
       image: jupyterdatascienceimage
       ports:
       - 8888:8888
       environment:
-            JUPYTER_TOKEN: "docker"
+        JUPYTER_TOKEN: "docker"
       volumes:
         - ./:/home/jovyan/work
         - ./jupyter_server_config.py:/home/jovyan/.jupyter/jupyter_server_config.py

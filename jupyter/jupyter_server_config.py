@@ -20,12 +20,18 @@ from oauthenticator.oauth2 import OAuthLoginHandler
 
 
 from jupyter_core.paths import jupyter_data_dir
-#from oauthenticator.generic import GenericOAuthenticator
+from oauthenticator.generic import GenericOAuthenticator
 
 c = get_config()  # noqa: F821
 c.ServerApp.ip = "0.0.0.0"
 c.ServerApp.port = 8888
 c.ServerApp.open_browser = False
+
+
+
+#c.JupyterHub.redirect_to_server = False
+#c.JupyterHub.default_url = 'https://api.dev.koverse.com/me'
+#c.JupyterHub.hub_port = 8888
 
 
 c.JupyterHub.authenticator_class = "generic"
@@ -35,7 +41,7 @@ c.GenericOAuthenticator.client_id = 'fa3a5acf13722f7195a25ab09cac2e1ffd39fb9b775
 c.GenericOAuthenticator.client_secret = 'f28f0e89f0244169a738853835ad4b5c32bbbd361aecc755cd6d59500b818388'
 c.GenericOAuthenticator.login_service = 'KDP'
 #c.GenericOAuthenticator.userdata_url = 'url-retrieving-user-data-with-access-token'
-c.GenericOAuthenticator.token_url = 'https://api.dev.koverse.com/login/oauth/access_token'
+c.GenericOAuthenticator.token_url = 'https://api.dev.koverse.com/login/oauth/token'
 #c.GenericOAuthenticator.username_key = 'username-key-for-USERDATA-URL'
 
 

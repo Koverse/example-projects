@@ -5,8 +5,8 @@ requests
 
 tornado
 jupyter_core
-jupyterhub
-notebook
+jupyterhub==1.3.0
+notebook==6.*
 
 
 

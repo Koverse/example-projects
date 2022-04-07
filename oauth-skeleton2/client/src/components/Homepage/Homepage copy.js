@@ -3,8 +3,6 @@ import axios from 'axios';
 import { Button} from '@material-ui/core';
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../Auth/AuthContext";
-import moment from "moment";
-import { postData } from "../../helpers/rest";
 
 const Homepage = () => {
 
@@ -14,14 +12,17 @@ const Homepage = () => {
     const navigate = useNavigate();
     const {loggedIn} = useContext(AuthContext);
 
-    const [wolfData, setWolfData] = useState(null);
-    const [dataTimer, setDataTimer] = useState({});
-    const [lastFetchTime, setLastFetchTime] = useState(
-        moment().subtract("5", "minutes").format("YYYY-MM-DD HH:mm:ss")
-      );
-    const REFRESH_TIME = 25000;
-    //const REFRESH_TIME = 10000;
-    const kdp4URL = `https://api.dev.koverse.com/query`;
+    const logout = () => {
+        console.log("Remove token and log out");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        //call logout endpoint
+        const loggedInState = axios.get("http://localhost:5000/logout");
+        console.log("loggedInState: " + loggedInState)
+
+        navigate("/");
+        window.location.reload();
+    }
 
     const getData = () => {
         console.log("calling /query endpoint");
@@ -52,80 +53,55 @@ const Homepage = () => {
 
     }
 
-  // GET newest wolf data in the last 5 minutes
-  // set the who inside to be a conditional between if accessToken is null or NOT
-  useEffect(() => {
-    setWolfData([]);
-    console.log(lastFetchTime);
-    const query = {
-      datasetId: "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
-      expression: "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
-      offset: 0,
-      limit: 10, //1000
-    };
+    /*const writeData = () => {
+        console.log("calling /query endpoint");
+        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
 
-    if (localStorage.getItem("user") === null)
-    {
-        console.log("do not call postData")
-    }
-    else if (localStorage.getItem("user") !== null)
-    {
-        console.log("Call postData")
-    }
-
-    console.log(JSON.parse(localStorage.getItem("user")))
-    const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-    //console.log(accessToken)
-
-        //const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-        //console.log(accessToken)
-      
-        postData(kdp4URL, query, accessToken)
-        .then((data) => {
-          console.log("Wolf data: " );
-          console.log(data);
-          if (data.length > 0 && dataTimer.id !== null) {
-            const wolfData2 = data.records.map((record) => {
-              return {
-                  type: "WolfData2",
-                  individual: record.Individual,
-                  color: record.Colour,
-                  population: record.Population,
-                  cpgmg: record.Cpgmg,
-                  tpgmg: record.Tpgmg,
-                  ppgmg: record.Ppgmg,
-                  sex: record.Sex,
-              };
-            });
-  
-            setWolfData(wolfData2);
-            setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-          }
+        //"/pokemon?limit=1000"
+        console.log(accessToken)
+        //axios.get("http://localhost:5000/callback", {params: {code: code}})
+        //axios.post('https://api.dev.koverse.com/write?datasetId=8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4', 
+        axios.post('https://api.dev.koverse.com/write?datasetId=', {params: {datasetId: "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4"}}, 
+        {
+            "additionalProp1": {
+                "Colour": "M",
+                "Cpgmg": "20.01",
+                "Individual": "201",
+                "Population": "2",
+                "Ppgmg": "NA",
+                "Sex": "M",
+                "Tpgmg": "5.35",
+            },
+            "additionalProp2": {
+                "Colour": "D",
+                "Cpgmg": "20.02",
+                "Individual": "202",
+                "Population": "2",
+                "Ppgmg": "NA",
+                "Sex": "M",
+                "Tpgmg": "5.35",
+            },
+        }, 
+        {
+            headers: {
+              "Authorization": "Bearer " + accessToken,
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS",
+              "Access-Control-Allow-Headers": "Origin, Content-Type, Accept, Authorization, X-Request-With"
+            }
+        }
+        )
+        .then(response => {
+            // store response token in local storage
+            console.log("Added records to wildlife data");
+            console.log(response);
         })
-        .finally(() => {
-          dataTimer.nextTimeoutId = setTimeout(
-            () => setDataTimer({ id: dataTimer.nextTimeoutId }),
-            REFRESH_TIME
-          );
-        });
-    return () => {
-      clearTimeout(dataTimer.nextTimeoutId);
-      dataTimer.id = null;
-    };
-  }, [dataTimer]);
+        .catch(err => {
+            console.log("DID NOT SUCCESSFULLY WRITE TO WILDLIFE DATASET")
+        })
+    }*/
+  
 
-
-    const logout = () => {
-        console.log("Remove token and log out");
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        //call logout endpoint
-        const loggedInState = axios.get("http://localhost:5000/logout");
-        console.log("loggedInState: " + loggedInState)
-
-        navigate("/");
-        window.location.reload();
-    }
     useEffect(() => {
         // get user login credentials
         axios.post('https://api.dev.koverse.com/authentication', 

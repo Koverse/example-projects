@@ -1,10 +1,4 @@
-# import csv
-# import json
-# import requests
-# import os
 from datetime import datetime, timedelta
-
-# import scrapbook as sb
 
 from airflow.models import Variable
 from airflow.decorators import dag, task
@@ -17,7 +11,6 @@ NOTEBOOK_PATH = '/opt/airflow/notebooks/'
 
 TOKEN = Variable.get("kdp_access_token")
 
-
 @dag(
     schedule_interval="0 0 * * *",
     start_date=datetime(2021, 1, 1),
@@ -29,8 +22,7 @@ def papermill_test():
     execute_notebook = PapermillOperator(
         task_id="run_example_notebook",
         input_nb = NOTEBOOK_PATH + "airflow_test_write.ipynb",
-        output_nb = NOTEBOOK_PATH + "test_out.ipynb",
-        # parameters={"msgs": "Wrote to test dataset with ID: {{DATASET_ID}}"}
+        output_nb = NOTEBOOK_PATH + "airflow_test_output_notebook.ipynb",
     )
 
     execute_notebook

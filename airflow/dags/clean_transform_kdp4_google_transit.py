@@ -8,7 +8,7 @@ import numpy as np
 from airflow.models import Variable
 from airflow.decorators import dag, task
 
-ORIGIN_DATASET_ID = '991ea482-db37-4ad6-b41b-939f8b85a29a'
+ORIGIN_DATASET_ID = ''
 CLEANED_DATASET_ID = ''
 DESTINATION_DATASET_ID = ''
 TOKEN = Variable.get("kdp_access_token")

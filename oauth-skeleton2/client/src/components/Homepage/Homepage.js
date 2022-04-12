@@ -54,7 +54,7 @@ const Homepage = () => {
 
   // GET newest wolf data in the last 5 minutes
   // set the who inside to be a conditional between if accessToken is null or NOT
-  useEffect(() => {
+  /*useEffect(() => {
     setWolfData([]);
     console.log(lastFetchTime);
     const query = {
@@ -112,7 +112,7 @@ const Homepage = () => {
       clearTimeout(dataTimer.nextTimeoutId);
       dataTimer.id = null;
     };
-  }, [dataTimer]);
+  }, [dataTimer]); */
 
 
     const logout = () => {
@@ -142,9 +142,9 @@ const Homepage = () => {
         })
         .catch(err => {
             console.log("Unable to get user credentials")
-            logout();
-            navigate("/");
-            window.location.reload();
+            //logout();
+            //navigate("/");
+            //window.location.reload();
         })
     }, [])
 

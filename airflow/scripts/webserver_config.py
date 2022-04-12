@@ -35,17 +35,21 @@ class KDPSecurity(AirflowSecurityManager):
     def oauth_user_info(self, provider, response=None):
         print("provider: ", provider)
         if provider == "Koverse Data Platform":
-            
+                        
             print("access_token: ", response['access_token'])
 
             bearer_token = 'Bearer ' + response['access_token']
             headers = {'Authorization': bearer_token}
             user_request = requests.get('https://api.dev.koverse.com/me', headers=headers)
+
+            print(user_request)
+            print(user_request.headers)
+
             user = json.loads(user_request.headers['Koverse-User'])
 
-            print("jwt: ", user_request.headers['Koverse-Jwt'])
+            print("Koverse-Access-Token: ", user_request.headers['Koverse-Access-Token'])
 
-            Variable.set("kdp_access_token", user_request.headers['Koverse-Jwt'])
+            Variable.set("kdp_access_token", user_request.headers['Koverse-Access-Token'])
 
             return {"username": user['displayName'], "email": user['email']}
         else:

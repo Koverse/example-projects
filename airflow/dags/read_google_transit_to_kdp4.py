@@ -10,7 +10,7 @@ from google.transit import gtfs_realtime_pb2
 
 from protobuf_to_dict import protobuf_to_dict
 
-DATASET_ID = '991ea482-db37-4ad6-b41b-939f8b85a29a'
+DATASET_ID = ''
 TOKEN = Variable.get("kdp_access_token")
 
 

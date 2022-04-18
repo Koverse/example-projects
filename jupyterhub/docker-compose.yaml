@@ -1,0 +1,12 @@
+version:  '3.7'
+services:
+  datascience-notebook:
+      image: koverse/jupyterhub
+      ports:
+      - 8000:8000
+      environment:
+            JUPYTER_TOKEN: "docker"
+      volumes:
+        - ./jupyter_server_config.py:/etc/jupyterhub/jupyterhub_config.py
+  
+      container_name:  jupyterhub

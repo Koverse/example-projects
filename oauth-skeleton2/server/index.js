@@ -5,6 +5,7 @@ const app = require('express')();
 var cookieParser = require('cookie-parser');
 var cors = require('cors')
 const axios = require('axios');
+const request = require('request');
 const jwt = require("jsonwebtoken")
 
 const { AuthorizationCode } = require('simple-oauth2');
@@ -103,5 +104,36 @@ createApplication(({ app, callbackUrl }) => {
   app.get("/loggedIn", (req, res) => {
     console.log(loggedInState)
     res.json(loggedInState)
+  })
+
+
+  app.get("/getData", (req,res) => {
+    console.log("entered /getData")
+    const { token } = req.query;
+    console.log(token)
+
+    axios.post('https://api.dev.koverse.com/query', 
+        {
+                "datasetId": "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
+                "expression": "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
+                "limit": 0,
+                "offset": 0
+        }, 
+        {
+            headers: {
+              "Authorization": "Bearer " + token
+            }
+        }
+        )
+        .then(response => {
+            // store response token in local storage
+            console.log("Wildlife data received");
+            console.log(response);
+            res.send(response.data)
+        })
+        .catch(err => {
+            console.log("DATA NOT RECEIVED")
+        })
+
   })
 });

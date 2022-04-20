@@ -8,5 +8,4 @@ services:
             JUPYTER_TOKEN: "docker"
       volumes:
         - ./jupyter_server_config.py:/etc/jupyterhub/jupyterhub_config.py
-  
       container_name:  jupyterhub

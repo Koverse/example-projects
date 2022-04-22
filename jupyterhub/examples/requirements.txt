@@ -1,0 +1,3 @@
+#### kdp
+git+https://github.com/Koverse/kdp-api-python-client.git@main#egg=kdp-api-python-client&subdirectory=package
+git+https://github.com/Koverse/kdp-python-connector.git@main#egg=kdp-python-connector

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# copy ssl and user config (don't want to modify originals mounted-in from host)
+# mkdir /srv/oauthenticator/ssl
+# cp /var/jupyter/ssl/ssl.crt /srv/oauthenticator/ssl/ssl.crt
+# cp /var/jupyter/ssl/ssl.key /srv/oauthenticator/ssl/ssl.key
+# cp /var/jupyter/userlist /srv/oauthenticator/userlist
+
+# required ssl permissions
+# chmod 700 /srv/oauthenticator/ssl
+# chmod 600 /srv/oauthenticator/ssl/ssl.crt
+# chmod 600 /srv/oauthenticator/ssl/ssl.key
+# chown -hR root /srv/oauthenticator/ssl
+
+# add all the users
+# sh /srv/oauthenticator/addusers.sh
+
+# go for jupyterhub!
+
+
+jupyterhub "$@"
+
+

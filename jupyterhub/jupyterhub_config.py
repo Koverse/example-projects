@@ -326,9 +326,9 @@ if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
 
 ###### This is for generic oauth, not working w/ out
 c.KDPOAuthenticator.oauth_callback_url = 'http://localhost:8000/hub/oauth_callback'
-c.GenericOAuthenticator.client_id = '8b4192aa46328e2fc4946dc10cda34d77ce05e608d9a2a6e31c46cdc1cdcbf4f'
-c.GenericOAuthenticator.client_secret = '1d1ccf39f89e98bef8ec45c37192c15a70be74ee8016a21c17d214ff8c6b8854'
+c.GenericOAuthenticator.client_id = 'ab9e8d4df62d3ff28067e1bdefc3f7678d41294f18bf9edba5912a4f7a6bdcad'
+c.GenericOAuthenticator.client_secret = '04110aa9e35fcdcb1cd90068cd0b79ecee1f40923bd864db823af3439171e5db'
 c.GenericOAuthenticator.login_service = 'KDP'
-c.GenericOAuthenticator.authorize_url = "https://api.dev.koverse.com/oauth2/auth"
-c.GenericOAuthenticator.token_url = 'https://api.dev.koverse.com/oauth2/token'
-c.GenericOAuthenticator.userdata_url = 'https://api.dev.koverse.com/authentication'
+c.GenericOAuthenticator.authorize_url = "https://api.staging.koverse.com/oauth2/auth"
+c.GenericOAuthenticator.token_url = 'https://api.staging.koverse.com/oauth2/token'
+c.GenericOAuthenticator.userdata_url = 'https://api.staging.koverse.com/authentication'

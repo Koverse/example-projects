@@ -43,15 +43,17 @@ createApplication(({ app, callbackUrl }) => {
 
   const client = new AuthorizationCode({
     client: {
-      id: '2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75',
-      //id: '444a0f8a0c2dabfdb37c3f54afda14390eb7f1eef09aa78e0fd5f6c7576c324f',
-      //secret: '3964abcb8ad7cda385696a7c4bd7edf8a25804bb9d89c54546f051694cb30400',
-      secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
+      //id: '2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75',
+      id: '66e63d65b6d0e150e6d02776e734188b0767fec5591005332b9e4a920b8371b7',
+      secret: '40e116dcf9a8fa0fa9b6719d9d313293939b7515cfab70287819ae3efd9607ec',
+      //secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
     },
     auth: {
+      //tokenHost: 'https://api.staging.koverse.com',
       tokenHost: 'https://api.dev.koverse.com',
       tokenPath: '/oauth2/token',
 	    authorizeHost: 'https://api.dev.koverse.com',
+      //authorizeHost: 'https://api.staging.koverse.com',
       authorizePath: '/oauth2/auth',
     }
   });
@@ -114,14 +116,15 @@ createApplication(({ app, callbackUrl }) => {
 
     axios.post('https://api.dev.koverse.com/query', 
         {
-                "datasetId": "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
-                "expression": "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
+                "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
+                "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\"",
                 "limit": 0,
                 "offset": 0
         }, 
         {
             headers: {
               "Authorization": "Bearer " + token
+              
             }
         }
         )
@@ -136,4 +139,36 @@ createApplication(({ app, callbackUrl }) => {
         })
 
   })
+
+  app.get("/getData3", (req,res) => {
+    console.log("entered /getData3")
+
+    axios.post('https://api.staging.koverse.com/query', 
+        {
+          
+            "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
+            "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > 1650665700",
+            "limit": 15,
+            "offset": 0
+
+        }, 
+        {
+            headers: {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImluZGlyYWF2ZW5kYW5vQGtvdmVyc2UuY29tIiwiaWF0IjoxNjUwODg4NzA5LCJleHAiOjE2NTA5NzUxMDksImlzcyI6ImtvdmVyc2UiLCJzdWIiOiI3NGFlZGFjOS1iMTJiLTQyMzItODg5Mi03OTY3NTY3ZGEwNjUiLCJqdGkiOiIxZGE3MzMwNS04YTk1LTQ1MTMtODlkNi1hNzhlNmU1NjQwMTYifQ.Xnpxz5WxPDleRahNS2SthUVAaSKklIGaWFUY_FayBYE"
+              
+            }
+        }
+        )
+        .then(response => {
+            // store response token in local storage
+            console.log("Wildlife data received");
+            console.log(response);
+            res.send(response.data)
+        })
+        .catch(err => {
+            console.log("DATA NOT RECEIVED")
+        })
+
+  })
+
 });

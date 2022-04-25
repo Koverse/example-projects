@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.3
 FROM jupyterhub/jupyterhub
 
 # Python libs
@@ -21,6 +22,14 @@ jupyter_client
 
 #additional python packages for data visualization, etc. - Many of the basics ship with jupyterhub base image
 RUN pip install seaborn
+
+##### GITHUB OAUTH #####
+
+#Install KDP Python connector and KDP API
+RUN --mount=type=secret,id=accesstoken \
+export ACCESSTOKEN=$(cat /run/secrets/accesstoken) && \
+pip install git+https://"${ACCESSTOKEN}"@github.com/Koverse/kdp-api-python-client.git@main#subdirectory=package && \
+pip install git+https://"${ACCESSTOKEN}"@github.com/Koverse/kdp-python-connector.git@main#egg=kdp-python-connector
 
 
 ########## SPARK ##########
@@ -102,5 +111,3 @@ RUN chown $USER:jupyter /srv/examples \
     && chmod g+s /srv/examples \
     && ln -s /srv/examples /etc/skel/examples
 ADD /examples /srv/examples
-
-

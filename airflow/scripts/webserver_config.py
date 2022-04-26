@@ -40,7 +40,7 @@ class KDPSecurity(AirflowSecurityManager):
 
             bearer_token = 'Bearer ' + response['access_token']
             headers = {'Authorization': bearer_token}
-            user_request = requests.get('https://api.dev.koverse.com/me', headers=headers)
+            user_request = requests.get('https://api.staging.koverse.com/me', headers=headers)
 
             print(user_request)
             print(user_request.headers)
@@ -95,12 +95,12 @@ OAUTH_PROVIDERS = [{
     'token_key':'access_token',
     'icon':'fa-lock',
         'remote_app': {
-            'api_base_url':'https://api.dev.koverse.com/oauth2/',
+            'api_base_url':'https://api.staging.koverse.com/oauth2/',
             'request_token_params':{
                 'scope': 'email profile'
             },
-            'access_token_url':'https://api.dev.koverse.com/oauth2/token',
-            'authorize_url':'https://api.dev.koverse.com/oauth2/auth',
+            'access_token_url':'https://api.staging.koverse.com/oauth2/token',
+            'authorize_url':'https://api.staging.koverse.com/oauth2/auth',
             'request_token_url': None,
             'client_id': os.environ.get('KDP4_CLIENT_ID'),
             'client_secret': os.environ.get('KDP4_CLIENT_SECRET'),

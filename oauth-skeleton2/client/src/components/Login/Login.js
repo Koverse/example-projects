@@ -21,7 +21,7 @@ const Login = () => {
         <p>Login Through KDP </p> 
           <OauthSender
             authorizeUrl='https://api.dev.koverse.com/oauth2/auth'
-            clientId='2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75'
+            clientId='8a188176c77b94601170a864f66063b32edd592a5e369472fef69db8826ef97a'
             //clientId='444a0f8a0c2dabfdb37c3f54afda14390eb7f1eef09aa78e0fd5f6c7576c324f'
             redirectUri='http://localhost:3000/auth/koverse'
             //redirectUri='http://localhost:5000/callback'

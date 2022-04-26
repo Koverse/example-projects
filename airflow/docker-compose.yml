@@ -57,6 +57,7 @@ x-airflow-common:
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./scripts/webserver_config.py:/opt/airflow/webserver_config.py
+    - ../sqlite-standin/kdp4SolutionsDB:/opt/airflow/kdp4SolutionsDB
   user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
   depends_on:
     redis:

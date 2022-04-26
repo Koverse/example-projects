@@ -42,10 +42,10 @@ createApplication(({ app, callbackUrl }) => {
 
   const client = new AuthorizationCode({
     client: {
-      id: '2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75',
+      id: '8a188176c77b94601170a864f66063b32edd592a5e369472fef69db8826ef97a',
       //id: '444a0f8a0c2dabfdb37c3f54afda14390eb7f1eef09aa78e0fd5f6c7576c324f',
       //secret: '3964abcb8ad7cda385696a7c4bd7edf8a25804bb9d89c54546f051694cb30400',
-      secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
+      secret: '672bcd7214f0ebcaa0a9a0c6213d71b865cd440a15a178d2d8536f1a4cc3aece'
     },
     auth: {
       tokenHost: 'https://api.dev.koverse.com',

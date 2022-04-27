@@ -24,6 +24,27 @@ const Homepage = () => {
         window.location.reload();
     }
 
+    const getData2 = () => {
+        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
+        console.log(accessToken)
+        axios.get('http://localhost:5000/getData', 
+        {params: {token: accessToken}})
+        .then(res => 
+  
+          {
+            console.log("received wolf data: ")
+            console.log(res)
+            // generate a random number up to 22
+            let rand = Math.random() * 22;
+            rand = Math.floor(rand);
+            setRecordOne(JSON.stringify(res.data.records[rand]))
+          })
+        .catch(err => {
+            console.log("DID NOT receive wolf data: ")
+            console.log(err)
+        })
+      }
+
     const getData = () => {
         console.log("calling /query endpoint");
         const accessToken = JSON.parse(localStorage.getItem("user")).accessToken

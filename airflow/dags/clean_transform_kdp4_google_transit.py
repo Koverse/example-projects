@@ -14,7 +14,7 @@ DESTINATION_DATASET_ID = ''
 TOKEN = Variable.get("kdp_access_token")
 
 def write_to_kdp4(jsonData, datasetId, token):
-    url = 'https://api.dev.koverse.com/write/' + datasetId
+    url = 'https://api.staging.koverse.com/write/' + datasetId
     authValue = 'Bearer ' + token
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}
@@ -24,7 +24,7 @@ def write_to_kdp4(jsonData, datasetId, token):
     return response
 
 def read_from_kdp4(datasetId, token):
-    read_url = 'https://api.dev.koverse.com/readInSequence'
+    read_url = 'https://api.staging.koverse.com/readInSequence'
     
     authValue = 'Bearer ' + token
     headers = {"Content-Type": "application/json",

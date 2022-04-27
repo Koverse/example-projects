@@ -49,11 +49,11 @@ createApplication(({ app, callbackUrl }) => {
       //secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
     },
     auth: {
-      //tokenHost: 'https://api.staging.koverse.com',
-      tokenHost: 'https://api.dev.koverse.com',
+      tokenHost: 'https://api.staging.koverse.com',
+      //tokenHost: 'https://api.dev.koverse.com',
       tokenPath: '/oauth2/token',
-	    authorizeHost: 'https://api.dev.koverse.com',
-      //authorizeHost: 'https://api.staging.koverse.com',
+	    //authorizeHost: 'https://api.dev.koverse.com',
+      authorizeHost: 'https://api.staging.koverse.com',
       authorizePath: '/oauth2/auth',
     }
   });
@@ -142,26 +142,48 @@ createApplication(({ app, callbackUrl }) => {
 
   app.get("/getData3", (req,res) => {
     console.log("entered /getData3")
+    const { token } = req.query;
+    console.log(token)
 
     axios.post('https://api.staging.koverse.com/query', 
-        {
-          
-            "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-            "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > 1650665700",
-            "limit": 15,
-            "offset": 0
-
-        }, 
+    {
+      "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
+      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > 1650665700",
+      "limit": 15,
+      "offset": 0
+    }, 
         {
             headers: {
-              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImluZGlyYWF2ZW5kYW5vQGtvdmVyc2UuY29tIiwiaWF0IjoxNjUwODg4NzA5LCJleHAiOjE2NTA5NzUxMDksImlzcyI6ImtvdmVyc2UiLCJzdWIiOiI3NGFlZGFjOS1iMTJiLTQyMzItODg5Mi03OTY3NTY3ZGEwNjUiLCJqdGkiOiIxZGE3MzMwNS04YTk1LTQ1MTMtODlkNi1hNzhlNmU1NjQwMTYifQ.Xnpxz5WxPDleRahNS2SthUVAaSKklIGaWFUY_FayBYE"
-              
+              "Authorization": "Bearer " + token            
             }
         }
         )
         .then(response => {
             // store response token in local storage
-            console.log("Wildlife data received");
+            console.log("data received");
+            console.log(response);
+            res.send(response.data)
+        })
+        .catch(err => {
+            console.log("DATA NOT RECEIVED")
+        })
+
+  })
+
+  app.get("/getCred", (req,res) => {
+    console.log("entered /getCred")
+    const { token } = req.query;
+    console.log(token)
+
+    axios.post('https://api.staging.koverse.com/authentication', 
+        {
+          "strategy": "jwt",
+          "accessToken": token
+
+        })
+        .then(response => {
+            // store response token in local storage
+            console.log("Credentials received");
             console.log(response);
             res.send(response.data)
         })

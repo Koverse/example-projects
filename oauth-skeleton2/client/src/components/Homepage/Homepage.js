@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useContext} from "react";
+import React, { useEffect, useState, useContext, useRef} from "react";
 import axios from 'axios';
 import { Button} from '@material-ui/core';
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../Auth/AuthContext";
 import moment from "moment";
+import ReactMapGL, {Marker} from 'react-map-gl'
 
 const Homepage = () => {
 
@@ -15,24 +16,46 @@ const Homepage = () => {
     const {loggedIn} = useContext(AuthContext);
 
     const [wolfData, setWolfData] = useState(null);
+    const [adsbData, setAdsbData] = useState([]);
     const [dataTimer, setDataTimer] = useState({});
     const [lastFetchTime, setLastFetchTime] = useState(
         moment().subtract("5", "minutes").format("YYYY-MM-DD HH:mm:ss")
       );
     //const REFRESH_TIME = 25000;
     const REFRESH_TIME = 10000;
-    const kdp4URL = `https://api.dev.koverse.com/query`;
 
-    // press "Get data" button to render one of the 22 received data records on the page
-    const getData2 = () => {
-      const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-      console.log(accessToken)
-      axios.get('http://localhost:5000/getData', 
-      {params: {token: accessToken}})
+    const MAPBOX_TOKEN = 'pk.eyJ1IjoiaW5kaXJhamhlbm55IiwiYSI6ImNsMmc1NGtlYzAwbDczamx3OXpnZ3NrNzMifQ.ei_QTtV_inPDuU_SKQ1BBA';
+
+    const [viewport, setViewport] = useState({
+      longitude: -104.991531,
+      latitude: 39.742043,
+      width: "100%",
+      height: "100%",
+      zoom: 10,
+  })
+    const mapRef = useRef();
+
+    const logout = () => {
+      console.log("Remove token and log out");
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      //call logout endpoint
+      const loggedInState = axios.get("http://localhost:5000/logout");
+      console.log("loggedInState: " + loggedInState)
+
+      navigate("/");
+      window.location.reload();
+    }
+
+     // press "Get data" button to render one of the 22 received data records on the page
+     const getData3 = () => {
+       console.log("Data already in adsbData var")
+       console.log(adsbData)
+       const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
+       axios.get('http://localhost:5000/getData3', {params: {token: accessToken}})
       .then(res => 
-
         {
-          console.log("received wolf data: ")
+          console.log("received data: ")
           console.log(res)
           // generate a random number up to 22
           let rand = Math.random() * 22;
@@ -40,107 +63,83 @@ const Homepage = () => {
           setRecordOne(JSON.stringify(res.data.records[rand]))
         })
       .catch(err => {
-          console.log("DID NOT receive wolf data: ")
+          console.log("DID NOT receive data: ")
           console.log(err)
       })
     }
 
-  // GET newest wolf data in the last 5 minutes
-  // set the who inside to be a conditional between if accessToken is null or NOT
+    useEffect(() => {
+      // get user login credentials
+      // send token as a parameter
+      console.log("test")
+      const accessToken = localStorage.getItem("token")
+      axios.get('http://localhost:5000/getCred', 
+      {params: {token: accessToken}})
+      .then(res => 
+        {
+          console.log("received credentials: ")
+          console.log(res)
+          // save user in local storage in order to refer to access token
+          localStorage.setItem("user", JSON.stringify(res.data))
+          // store username and email
+          setUserDisplayName(res.data.user.displayName);        
+          setUserEmail(res.data.user.email); 
+
+        })
+      .catch(err => {
+          console.log(err)
+          console.log("Unable to get user credentials")
+          logout(); // reactivate once authentication is working again
+      })
+    }, [])
+  
   useEffect(() => {
-    setWolfData([]);
+    setAdsbData([]);
     console.log(lastFetchTime);
+    console.log(moment().subtract("20", "minutes").utc().format("YYYY-MM-DDTHH:mm:ss[Z]"));
     if (localStorage.getItem("user") === null)
     {
         console.log("do not call postData")
     }
     else if (localStorage.getItem("user") !== null)
     {
-        console.log("Call postData")
-        console.log(JSON.parse(localStorage.getItem("user")))
-        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-
-        axios.get('http://localhost:5000/getData', 
-        {params: {token: accessToken}})
-        .then(data => 
-        {
-          console.log("received wolf data: ")
-          console.log(data)
-          
-          console.log(dataTimer.id)
-          if (data.length > 0 && dataTimer.id !== null) {
-            console.log("dataTimer.id != null")
-            const wolfData2 = data.records.map((record) => {
-              return {
-                  type: "WolfData2",
-                  individual: record.Individual,
-                  color: record.Colour,
-                  population: record.Population,
-                  cpgmg: record.Cpgmg,
-                  tpgmg: record.Tpgmg,
-                  ppgmg: record.Ppgmg,
-                  sex: record.Sex,
-              };
-            });
+      console.log("Call postData")
+      const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
   
-            setWolfData(wolfData2);
-            setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-          }
-          
+      axios.get('http://localhost:5000/getData3', {params: {token: accessToken}})
+      .then(res => 
+        {
+          console.log("received data: ")
+          console.log(res)
+          // generate a random number up to 15
+          let rand = Math.random() * 15;
+          rand = Math.floor(rand);
+          setRecordOne(JSON.stringify(res.data.records[rand]))
+          setAdsbData(res.data.records);
+          setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
+  
         })
-        .catch(err => {
-            console.log("DID NOT receive wolf data: ")
-            console.log(err)
-        })
-        .finally(() => {
-          console.log("set data timer")
-          dataTimer.nextTimeoutId = setTimeout(
-            () => setDataTimer({ id: dataTimer.nextTimeoutId }),
-            REFRESH_TIME
-          );
-        });
+      .catch(err => {
+          console.log("DID NOT receive data: ")
+          console.log(err)
+      })  
+      .finally(() => {
+        console.log("set data timer")
+        dataTimer.nextTimeoutId = setTimeout(
+          () => setDataTimer({ id: dataTimer.nextTimeoutId }),
+          REFRESH_TIME
+        );
+      });
     }
-        
-        return () => {
-          clearTimeout(dataTimer.nextTimeoutId);
-          dataTimer.id = null;
-        };
+
+      
+    return () => {
+      clearTimeout(dataTimer.nextTimeoutId);
+      dataTimer.id = null;
+    };
   }, [dataTimer]);
 
 
-    const logout = () => {
-        console.log("Remove token and log out");
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        //call logout endpoint
-        const loggedInState = axios.get("http://localhost:5000/logout");
-        console.log("loggedInState: " + loggedInState)
-
-        navigate("/");
-        window.location.reload();
-    }
-    useEffect(() => {
-        // get user login credentials
-        axios.post('https://api.dev.koverse.com/authentication', 
-        {
-                "strategy": "jwt",
-                "accessToken": localStorage.getItem('token')
-        })
-        .then(response => {
-            // store response token in local storage
-            console.log(response);
-            localStorage.setItem("user", JSON.stringify(response.data))
-            setUserDisplayName(response.data.user.displayName);        
-            setUserEmail(response.data.user.email); 
-            
-        })
-        .catch(err => {
-            console.log("Unable to get user credentials")
-            logout();
-            //navigate("/");
-            //window.location.reload();
-        })
-    }, [])
 
     return (
         <div>
@@ -154,12 +153,24 @@ const Homepage = () => {
                     onClick={()=> {logout()}}
                     >Log-out</Button>
                     <Button style={{color: 'white', background: 'gray'}}
-                    onClick={()=> {getData2()}}
+                    onClick={()=> {getData3()}}
                     >Get Data</Button>
-                    {/* <Button style={{color: 'white', background: 'gray'}}
-                    onClick={()=> {writeData()}}
-                    >Write Data</Button> */}
                     <>{recordOne}</>
+
+                    <div style={{ height: "100vh" }}>
+                    <ReactMapGL
+                      {...viewport}
+                      ref={mapRef}
+                      mapStyle="mapbox://styles/mapbox/dark-v9"
+                      mapboxAccessToken={MAPBOX_TOKEN}
+                      onViewportChange={(nextViewport) => setViewport(nextViewport)}
+                      >
+                    markers here
+                    <Marker longitude={-104.991531} latitude={39.742043} anchor="bottom" >
+                      <img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png" />
+                    </Marker>
+                    </ReactMapGL>        
+                    </div>
                 </> 
             }
         </div>

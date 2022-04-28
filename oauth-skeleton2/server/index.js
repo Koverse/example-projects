@@ -7,6 +7,7 @@ var cors = require('cors')
 const axios = require('axios');
 const request = require('request');
 const jwt = require("jsonwebtoken")
+const moment = require("moment");
 
 const { AuthorizationCode } = require('simple-oauth2');
 
@@ -108,47 +109,16 @@ createApplication(({ app, callbackUrl }) => {
     res.json(loggedInState)
   })
 
-
-  app.get("/getData", (req,res) => {
-    console.log("entered /getData")
-    const { token } = req.query;
-    console.log(token)
-
-    axios.post('https://api.dev.koverse.com/query', 
-        {
-                "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-                "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\"",
-                "limit": 0,
-                "offset": 0
-        }, 
-        {
-            headers: {
-              "Authorization": "Bearer " + token
-              
-            }
-        }
-        )
-        .then(response => {
-            // store response token in local storage
-            console.log("Wildlife data received");
-            console.log(response);
-            res.send(response.data)
-        })
-        .catch(err => {
-            console.log("DATA NOT RECEIVED")
-        })
-
-  })
-
   app.get("/getData3", (req,res) => {
     console.log("entered /getData3")
     const { token } = req.query;
-    console.log(token)
-
+    //console.log(token)
+    let now = moment().subtract("2", "minutes")
+    console.log("current time: " + now)
     axios.post('https://api.staging.koverse.com/query', 
     {
       "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > 1650665700",
+      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > " + now,
       "limit": 15,
       "offset": 0
     }, 
@@ -161,7 +131,7 @@ createApplication(({ app, callbackUrl }) => {
         .then(response => {
             // store response token in local storage
             console.log("data received");
-            console.log(response);
+            //console.log(response);
             res.send(response.data)
         })
         .catch(err => {
@@ -184,11 +154,12 @@ createApplication(({ app, callbackUrl }) => {
         .then(response => {
             // store response token in local storage
             console.log("Credentials received");
-            console.log(response);
+            //console.log(response);
             res.send(response.data)
         })
         .catch(err => {
             console.log("DATA NOT RECEIVED")
+            // redirect user to login page from here?
         })
 
   })

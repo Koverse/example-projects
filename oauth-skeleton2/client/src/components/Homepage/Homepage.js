@@ -89,6 +89,7 @@ const Homepage = () => {
       // get user login credentials
       // send token as a parameter
       console.log("test")
+
       const accessToken = localStorage.getItem("token")
       axios.get('http://localhost:5000/getCred', 
       {params: {token: accessToken}})
@@ -100,7 +101,7 @@ const Homepage = () => {
           localStorage.setItem("user", JSON.stringify(res.data))
           // store username and email
           setUserDisplayName(res.data.user.displayName);        
-          setUserEmail(res.data.user.email); 
+          setUserEmail(res.data.user.email);
 
         })
       .catch(err => {
@@ -108,6 +109,11 @@ const Homepage = () => {
           console.log("Unable to get user credentials")
           logout(); // reactivate once authentication is working again
       })
+      // index of dataset(s) we're calling from
+      // only look for index of desired dataset once index != null
+      //const index = arr.map(object => object.id).indexOf('c');
+      //console.log(index);
+      // another axios call for all the available datasets in kdp4 workspace we are signed in to
     }, [])
   
   useEffect(() => {
@@ -169,6 +175,8 @@ const Homepage = () => {
             // console.log(sortedData)
             setAdsbData(sortedData);
           setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
+          let now = moment().subtract("2", "minutes")
+          console.log("current time: " + now)
   
         })
       .catch(err => {

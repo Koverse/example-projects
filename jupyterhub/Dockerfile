@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.3
-FROM jupyterhub/jupyterhub
+FROM jupyterhub/jupyterhub:latest
 
 # Python libs
 RUN apt-get update \
@@ -21,7 +21,8 @@ RUN pip install jupyter \
 jupyter_client
 
 #additional python packages for data visualization, etc. - Many of the basics ship with jupyterhub base image
-RUN pip install seaborn
+RUN pip install seaborn \
+    pip install ipywidgets
 
 ##### GITHUB OAUTH #####
 
@@ -91,12 +92,22 @@ WORKDIR /srv/oauthenticator
 ENV OAUTHENTICATOR_DIR /srv/oauthenticator
 
 # Get config for jupyterhub and oauth
-ADD jupyterhub_config.py /srv/oauthenticator/jupyterhub_config.py
-ADD oauth-setup-and-run-jupyterhub /srv/oauthenticator/oauth-setup-and-run-jupyterhub
+COPY jupyterhub_config.py /srv/oauthenticator/jupyterhub_config.py
+COPY oauth-setup-and-run-jupyterhub /srv/oauthenticator/oauth-setup-and-run-jupyterhub
 
 
+RUN pip install jupyter_nbextensions_configurator
 
+RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix  && \
+    jupyter nbextensions_configurator enable --sys-prefix
 
+COPY /KDP4 /srv/user/KDP4
+COPY setup.py /srv/user/setup.py
+
+#install KDP4 jupyter extension
+RUN cd /srv/user/ && pip install -e . --user && \
+    jupyter nbextension install KDP4 --sys-prefix && \
+    jupyter nbextension enable KDP4/main --sys-prefix
 
 
 # Set up users and launch jupyterhub.

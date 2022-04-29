@@ -39,7 +39,36 @@ This sets up users, contains installs to make KDP4 authentication and integratio
 
 - Go to localhost:8000/hub on a web browser after running docker-compose up and authenticate with Koverse to get to jupyter.
 
-
 ## Running Example Notebooks
 
 * Follow directions in README located in examples directory to install KDP4 python client and python connector before running example notebooks.
+
+# KDP4 Jupyter notebook extension
+
+The main purpose of this extension is to improve the usability of the two main KDP python packages in terms of the typical read and write flow from outside sources reading from KDP and writing to KDP.
+
+Each time a new notebook is opened or a current one is restarted, the hidden cells at the beginning of the notebook will run automatically to retrieve the access token from the environmental variable and store it into the python jwt variable. Additionally, it will give you the workspace_id, email, firstName, lastName, fullName, and set up the kdp_conn variable automatically.
+
+You also have access to the overwrite_to_kdp, write_to_new_kdp, and write_to_existing_kdp functions from the /examples/KDP4 Reading and Writing Flow with Pandas.ipynb notebook.
+
+The pre-loaded cells are protected meaning that they can't be deleted or edited, so in case you accidentally overwrite one of the variables. To run only the hidden cells, you need to go to the `Kernel` dropdown menu and click `Restart`.
+
+## Future features to implement backlog
+
+1. Automatic variable protection - if an essential variable is overwritten, immediately change the value back to the original value and warn the user that this occurred by creating a markdown cell below the cell the user just executed.
+
+2. A sub problem that comes up if the above or any similar feature involving executing hidden cells beyond the initialization of a notebook is that the execution number may be off. Ex. a user expects to see In [1], In [2], In [3] but instead sees something like In [4] because a hidden cell ran in between which may cause user confusion. Need to find a way to reliable track the cell IDs of the hidden cells and not increase the execution number when one of those cells are run.
+
+3. Tutorial/Examples within the extension and loaded with each notebook w/ hide/show toggle buttons (which are written as separate extensions, so you are able to turn them off and on as needed to save memory within each notebook)
+
+4. Change the Jupyter favicon icon at the top left to a combined Koverse/Jupyter image or just Koverse.
+
+5. Change the Jupyter favicon icon inside of Google Chrome's tab to a different icon. Additionally, change the background color scheme based on if the kernel is busy or not, and if it ran successfully or ran into an error.
+
+6. Add a font size drop down menu for users to increase CSS font size of the notebook.
+
+7. Add an option to be notified when jobs are completed with a notification to an email or phone number (with user input inside the notebook), particularly useful with long-running jobs and especially when unexpected errors occur.
+
+8. Active timer to track how much time left before access token expiration on the main menu bar.
+
+9. Add a button on the main menu bar to re-authenticate at any time.

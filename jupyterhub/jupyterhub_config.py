@@ -18,10 +18,15 @@ from traitlets import Bool, Dict, List, Unicode, Union, default
 from oauthenticator.oauth2 import OAuthenticator
 from oauthenticator.traitlets import Callable
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 class GenericOAuthenticator(OAuthenticator):
     login_service = Unicode("OAuth 2.0", config=True)
 
-    extra_params = Dict(help="Extra parameters for first POST request").tag(config=True)
+    extra_params = Dict(
+             help="Extra parameters for first POST request"
+         ).tag(config=True)
 
     claim_groups_key = Union(
         [Unicode(os.environ.get('OAUTH2_GROUPS_KEY', 'groups')), Callable()],
@@ -113,7 +118,9 @@ class GenericOAuthenticator(OAuthenticator):
 
     def _get_user_data(self, token_response):
         access_token = token_response['access_token']
+        access_token_expire = token_response['expires_in']
         token_type = token_response['token_type']
+
         print(access_token)
         print(token_type)
         self.log.info(access_token)
@@ -134,7 +141,8 @@ class GenericOAuthenticator(OAuthenticator):
 
         params = dict(
             strategy="jwt",
-            accessToken=access_token
+            accessToken=access_token,
+            accessTokenExpire=access_token_expire
         )
 
         req = HTTPRequest(
@@ -144,7 +152,7 @@ class GenericOAuthenticator(OAuthenticator):
             body=urlencode(params),
         )
         #res = self.fetch(req, "fetching user data")
-        
+
         return self.fetch(req)
         # try:
         #     res = self.fetch(req)
@@ -154,8 +162,14 @@ class GenericOAuthenticator(OAuthenticator):
         #     self.log.info(res.headers)
 
     @staticmethod
+    def _get_token_expire(token_response):
+        access_token_expire = token_response['expires_in']
+        return access_token_expire
+
+    @staticmethod
     def _create_auth_state(token_response, user_data_response):
         access_token = token_response['access_token']
+        access_token_expire = token_response['expires_in']
         refresh_token = token_response.get('refresh_token', None)
         scope = token_response.get('scope', '')
         if isinstance(scope, str):
@@ -166,8 +180,8 @@ class GenericOAuthenticator(OAuthenticator):
             'refresh_token': refresh_token,
             'oauth_user': user_data_response,
             'scope': scope,
+            "access_token_expire": access_token_expire
         }
-
 
     @staticmethod
     def check_user_in_groups(member_groups, allowed_groups):
@@ -182,9 +196,7 @@ class GenericOAuthenticator(OAuthenticator):
             return
         #access_token added to spawner environment
         spawner.environment['ACCESS_TOKEN'] = auth_state['access_token']
-
-
-
+        spawner.environment['ACCESS_TOKEN_EXPIRE'] = auth_state['access_token_expire']
 
     async def authenticate(self, handler, data=None):
         code = handler.get_argument("code")
@@ -198,10 +210,16 @@ class GenericOAuthenticator(OAuthenticator):
 
         headers = self._get_headers()
 
+        current_time = datetime.now()
         token_resp_json = await self._get_token(headers, params)
 
-        user_data_resp_json = await self._get_user_data(token_resp_json)
+        token_expire_time = (current_time + relativedelta(hours = round(token_resp_json['expires_in']/3600)))\
+        .strftime('%Y-%m-%d %I:%M:%S %p')
 
+        user_data_resp_json = await self._get_user_data(token_resp_json)
+        self.log.info('HELLO')
+        self.log.info(user_data_resp_json)
+        self.log.info(token_resp_json)
         print(user_data_resp_json)
         self.log.error("test", user_data_resp_json)
         #user = json.loads(user_data_resp_json.headers['Koverse-User'])
@@ -210,13 +228,10 @@ class GenericOAuthenticator(OAuthenticator):
         user_info = {
             'name': user_data_resp_json['user']['email'],
             'auth_state': {
-                "access_token": user_data_resp_json['accessToken']
+                "access_token": user_data_resp_json['accessToken'],
+                "access_token_expire": token_expire_time
             },
         }
-
-        #os.environ['ACCESS_TOKEN'] = user_data_resp_json['accessToken']
-
-
 
         if self.allowed_groups:
             self.log.info(
@@ -326,9 +341,9 @@ if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
 
 ###### This is for generic oauth, not working w/ out
 c.KDPOAuthenticator.oauth_callback_url = 'http://localhost:8000/hub/oauth_callback'
-c.GenericOAuthenticator.client_id = 'e1b7ffd075f243d6fb6e658ab99dd581f442b7a10752e3421d617ca075859e15'
-c.GenericOAuthenticator.client_secret = '31c8852ef1608d337a046c5be99ebf2399c06904f21e57500397733dc1214209'
+c.GenericOAuthenticator.client_id = 'ab9e8d4df62d3ff28067e1bdefc3f7678d41294f18bf9edba5912a4f7a6bdcad'
+c.GenericOAuthenticator.client_secret = '04110aa9e35fcdcb1cd90068cd0b79ecee1f40923bd864db823af3439171e5db'
 c.GenericOAuthenticator.login_service = 'KDP'
-c.GenericOAuthenticator.authorize_url = "https://api.dev.koverse.com/oauth2/auth"
-c.GenericOAuthenticator.token_url = 'https://api.dev.koverse.com/oauth2/token'
-c.GenericOAuthenticator.userdata_url = 'https://api.dev.koverse.com/authentication'
+c.GenericOAuthenticator.authorize_url = "https://api.staging.koverse.com/oauth2/auth"
+c.GenericOAuthenticator.token_url = 'https://api.staging.koverse.com/oauth2/token'
+c.GenericOAuthenticator.userdata_url = 'https://api.staging.koverse.com/authentication'

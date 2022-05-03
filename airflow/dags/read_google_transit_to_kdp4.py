@@ -10,13 +10,13 @@ from google.transit import gtfs_realtime_pb2
 
 from protobuf_to_dict import protobuf_to_dict
 
-DATASET_ID = ''
+DATASET_ID = '9b452877-a363-4303-9fa8-15672a1f62e1'
 TOKEN = Variable.get("kdp_access_token")
-
 
 def write_to_kdp4(jsonData, datasetId, token):
     url = 'https://api.staging.koverse.com/write/' + datasetId
-    authValue = 'Bearer ' + token
+    #authValue = 'Bearer ' + token
+    authValue = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImluZGlyYWF2ZW5kYW5vQGtvdmVyc2UuY29tIiwiaWF0IjoxNjUxNTk0Mzg1LCJleHAiOjE2NTE2ODA3ODUsImlzcyI6ImtvdmVyc2UiLCJzdWIiOiI3NGFlZGFjOS1iMTJiLTQyMzItODg5Mi03OTY3NTY3ZGEwNjUiLCJqdGkiOiI3NjE1M2VhNy1jYmFmLTRjMGItOTc1ZS1hOTVjZGUzMjkzYmYifQ.8P4v-VIM_X5BsGExtuYszbLbdFpqN4nkJ29UUIZM_v4'
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}
     

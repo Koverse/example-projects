@@ -44,7 +44,7 @@ const Homepage = () => {
       latitude: 39.742043,
       width: "100%",
       height: "100%",
-      zoom: 6,
+      zoom: 8,
       bearing: 0,
       pitch: 0
   })
@@ -141,23 +141,19 @@ const Homepage = () => {
           // instead of setting like this, map the objects within array of objects to new
           // array with an object you designed on your own, it will help when making layers
           console.log(res.data.records)
-          let preFlightData = res.data.records.map((record) => {
+          let preFlightData = res.data.records.map((record, index) => {
 
               return {
                 coordinates: [
-                  Number(record.lon),
-                  Number(record.lat),
-                  Number(record.alt_baro),
+                  Number(record.longitude),
+                  Number(record.latitude),
                 ],
-                callsign: record.flight,
-                track: record.track,
-                hex: record.hex,
-                type: "Plane",
-                details: record.flight,
-                category: record.category,
-                nav_heading: record.nav_heading,
-                squawk: record.squawk,
-                IngestTime: record.flight_aware_ts,
+                route: record.id,
+                bearing: record.bearing,
+                type: "Bus",
+                isHostile: false,
+                index: index, 
+                timestamp: record.timestamp
               };
           });
 
@@ -167,16 +163,16 @@ const Homepage = () => {
 
           const dataAsObj = {};
             let sortedData = preFlightData;
-            sortedData.forEach((entry) => (dataAsObj[entry["hex"]] = entry));
+            sortedData.forEach((entry) => (dataAsObj[entry["index"]] = entry));
             sortedData = preFlightData.map(
-              (entry) => dataAsObj[entry["hex"]] || entry
+              (entry) => dataAsObj[entry["index"]] || entry
             );
   
             // console.log(sortedData)
-            setAdsbData(sortedData);
+          setAdsbData(sortedData);
           setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-          let now = moment().subtract("2", "minutes")
-          console.log("current time: " + now)
+          //let now = moment().subtract("2", "minutes")
+          //console.log("current time: " + now)
   
         })
       .catch(err => {

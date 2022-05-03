@@ -113,15 +113,22 @@ createApplication(({ app, callbackUrl }) => {
     console.log("entered /getData3")
     const { token } = req.query;
     //console.log(token)
-    let now = moment().subtract("2", "minutes")
+    let now = moment().subtract("5", "minutes").format("X")
     console.log("current time: " + now)
     axios.post('https://api.staging.koverse.com/query', 
     {
-      "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > " + now,
-      "limit": 15,
+      "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
+      "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
+      "limit": 200,
       "offset": 0
     }, 
+    // axios.post('https://api.staging.koverse.com/query', 
+    // {
+    //   "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
+    //   "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"latitude\" = 39.74006652832031",
+    //   "limit": 15,
+    //   "offset": 0
+    // }, 
         {
             headers: {
               "Authorization": "Bearer " + token            
@@ -131,10 +138,12 @@ createApplication(({ app, callbackUrl }) => {
         .then(response => {
             // store response token in local storage
             console.log("data received");
+            console.log(response.data)
             //console.log(response);
             res.send(response.data)
         })
         .catch(err => {
+          console.log(err)
             console.log("DATA NOT RECEIVED")
         })
 

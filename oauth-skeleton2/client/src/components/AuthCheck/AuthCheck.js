@@ -23,18 +23,18 @@ const AuthCheck = () => {
         axios.get("http://localhost:5000/callback", {params: {code: code}})
         .then(res => 
         {
-            console.log("Calling callback function, token: ")
+            console.log("Calling callback function, token: ", res.data.access_token)
             // store token in local storage
             localStorage.setItem("token", res.data.access_token);
             navigate("/auth/success");
-            window.location.reload();
+            // window.location.reload();
         })
         .catch(err => 
         {
             console.log("Unable to call callback function") //unable to login
             console.log(loggedIn)
             navigate("/auth/success");
-            window.location.reload();
+            // window.location.reload();
         });
       }, []);
    

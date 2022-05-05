@@ -13,3 +13,6 @@ __pycache__
 
 # production
 /oauth-skeleton2/client/build
+
+# local DB
+/sqlite-standin/kdp4SolutionsDB

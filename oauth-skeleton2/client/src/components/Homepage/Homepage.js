@@ -19,10 +19,42 @@ import {
     ScatterplotLayer,
   } from "@deck.gl/layers";
 
-const Homepage = () => {
-  /*********************************************************
-   *                   VARIABLES                            *
+    /*********************************************************
+   *        HELPER FUNCTIONS/METHODS                         *
    *********************************************************/
+
+//     function range(size, startAt = 0) {
+//     return [...Array(size).keys()].map(i => i + startAt);
+// }
+    
+//     function alphabetMap(startChar, endChar) {
+//       var alphabetMap = Object.fromEntries((String.fromCharCode(...range((endChar.charCodeAt(0) + 1) -
+//       startChar.charCodeAt(0), startChar.charCodeAt(0)))).split("").map((k, i) => [k, String(i)]));
+
+//       return alphabetMap;
+//     }
+
+//     String.prototype.mapReplace = function(map) {
+//       var regex = [];
+//       for(var key in map)
+//           regex.push(key.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"));
+//       return this.replace(new RegExp(regex.join('|'),"g"),function(word){
+//           return map[word];
+//       });
+//   };
+
+
+  function showBusData(info, event) {
+    // showPanel("Bus Details", "Screenname = " + info.object.screenName);
+    // console.log("buuuuuuuuuuuuuuuuus");
+    // console.log(info);
+  }
+
+/*********************************************************
+ *                   VARIABLES                            *
+ *********************************************************/
+const Homepage = () => {
+
     const [viewState, setViewState] = useState({
         longitude: -104.991531,
         latitude: 39.742043,
@@ -40,7 +72,7 @@ const Homepage = () => {
       );
 
     const [activeBus, setActiveBus] = useState({});
-    const koverseURL = `https://api.dev.koverse.com`;
+    const koverseURL = `https://api.staging.koverse.com`;
 
     const [lastFetchTime, setLastFetchTime] = useState(
         moment().subtract("5", "minutes").format("YYYY-MM-DD HH:mm:ss")
@@ -48,25 +80,31 @@ const Homepage = () => {
     
     const {loggedIn} = useContext(AuthContext);
     
-    if (loggedIn){
-        console.log("Logged in");
-        console.log(JSON.parse(localStorage.getItem("user")).accessToken);
-    }
+    // if (loggedIn){
+    //     console.log("Logged in");
+    //     console.log(JSON.parse(localStorage.getItem("user")).accessToken);
+    // }
 
     const [busTimer, setBusTimer] = useState({});
+
+    const [logTimer, setLogTimer] = useState({});
     
     const [busData, setBusData] = useState(null);
 
-    const REFRESH_TIME = 25000;
+    const REFRESH_TIME = 30000;
 
-  /*********************************************************
-   *                 FUNCTIONS                              *
-   *********************************************************/
-    function showBusData(info, event) {
-        // showPanel("Bus Details", "Screenname = " + info.object.screenName);
-        // console.log("buuuuuuuuuuuuuuuuus");
-        // console.log(info);
-      }
+    const DATE = new Date();
+
+    const [routeColors, updateRouteColors] = useState({});
+
+    const [routeColorTimer, setColorTimer] = useState({});
+
+    const [uniqueRoutes, updateUniqueRoutes] = useState(new Set());
+
+    const addUniqueRoute =routeToAdd => {
+      updateUniqueRoutes(previousRoute => new Set([...previousRoute, routeToAdd]));
+    }
+    // let uniqueRoutes = new Set();
 
   /*********************************************************
    *                   TOOLTIP                              *
@@ -92,8 +130,10 @@ const Homepage = () => {
               }}
             >
               <h1>{object.route}</h1>
-              Bearing: {object.bearing} <br />
-              Speed: {object.speed}
+              {/* Time: {(new Date(object.timeStamp * 1000)).toUTCString() } <br /> */}
+              Latitude: {object.coordinates[0]} <br />
+              Longitude: {object.coordinates[1]} <br />
+              RouteOrder: {object.routeOrder} <br />
             </div>
           )
         );
@@ -105,75 +145,108 @@ const Homepage = () => {
 
       
       useEffect(() => {    
-        const query = {
-            datasetId: "a53235f3-90d2-4dbd-8889-61d4d8fc9e4b",
-            expression: "SELECT * FROM \"a53235f3-90d2-4dbd-8889-61d4d8fc9e4b\"",
-            limit: 0,
-            offset: 0
-        };
-        
 
-        const dataLoadingUserState = () => (loggedIn) ? JSON.parse(localStorage.getItem("user")).accessToken : "";
+      const _query =  `SELECT a.latitude, a.longitude, a.route_id, a.timestamp, a.id, a.route_order, a.update_count
+        FROM rtdTransformed a
+        INNER JOIN (
+            SELECT id, MAX(update_count) update_count
+            FROM rtdTransformed
+            GROUP BY id
+        ) b ON a.id = b.id AND a.update_count = b.update_count
+        ORDER BY a.timestamp DESC`;
+        // LIMIT 10000`
+      
+      // const _query = `SELECT a.latitude, a.longitude, a.route_id, a.timestamp, a.id, a.route_order, a.update_count
+      //   FROM rtdTransformed WHERE update_count == 10`;
 
+      axios.get("http://localhost:5000/get_all_SQLITE", {params: {query: _query}})
+      .then((data) => {
+        console.log("Bus Data" + data);
+        console.log(data.data.length);
+        // console.log(data.data);
+        if (data.data.length > 0 && busTimer.id !== null) {
+          console.log("Bus data > 0");
+          let busData = data.data.map((record, index) => {
+            // console.log(record);
 
-        postData(koverseURL + "/query", query, dataLoadingUserState)
-          //postData(koverseURL, query)
-          .then((data) => {
-            console.log("Bus Data" + data);
-            if (data.length > 0 && busTimer.id !== null) {
-              console.log("Bus data > 0");
-              let busData = data[0].records.map((record, index) => {
-                //console.log(busData);
-                return {
-                  coordinates: [
-                    Number(record.value.longitude),
-                    Number(record.value.latitude),
-                  ],
-                  route: record.value.route_id,
-                  bearing: record.value.bearing,
-                  type: "Bus",
-                  details: record.value.route_id,
-                  routeOrder: record.value.route_order,
-                  timeStamp: record.value.timestamp,
-                  isHostile: false,
-                };
-              });
-    
-              const dataAsObj = {};
-              let sortedData = busData;
-              sortedData.forEach((entry) => (dataAsObj[entry["timeStamp"]] = entry));
-    
-              sortedData = busData.map(
-                (entry) => dataAsObj[entry["timeStamp"]] || entry
-              );
-    
-              sortedData = sortedData.filter(
-                (v, i, a) =>
-                  a.findIndex((t) => JSON.stringify(t) === JSON.stringify(v)) === i
-              );
-    
-              setBusData(sortedData);
-              setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-            }
-            // setLayers([generateArcData(journeyData), scatterLayer])
-          })
-          .finally(() => {
-            busTimer.nextTimeoutId = setTimeout(
-              () => setBusTimer({ id: busTimer.nextTimeoutId }),
-              REFRESH_TIME
-            );
+            // if (!(record.route_id in routeColors)){
+            //       let newRouteColor = {[record.route_id]: {r: Math.random() * 255, g: Math.random() * 255, b: Math.random() * 255}};
+            //       let mergedRouteColors = {...routeColors, newRouteColor};
+            //     updateRouteColors(mergedRouteColors);
+            //     }
+
+            // if  (!(uniqueRoutes.has(record.route_id))){
+            //   addUniqueRoute(record.route_id);
+            // }
+
+            return {
+              coordinates: [
+                Number(record.longitude),
+                Number(record.latitude),
+              ],
+              route: record.route_id,
+              // bearing: record.bearing,
+              type: "Bus",
+              routeOrder: record.route_order,
+              timeStamp: record.timestamp,
+              isHostile: false,
+              vehicle_id: record.id
+            };
           });
-    
-        return () => {
-          clearTimeout(busTimer.nextTimeoutId);
-          busTimer.id = null;
-        };
-      }, [busTimer]);
 
+          setBusData(busData);
+          setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
 
+          if (busData){
+            console.log("busData Length: ", busData.length);
+            let colorsToAdd = {};
+          busData.forEach(record =>{
+            // console.log(record);
+            if (!(record.route in routeColors)){
+              let newRouteColor = {r: Math.random() * 255, g: Math.random() * 255, b: Math.random() * 255};
+              colorsToAdd[record.route] = newRouteColor;
+            }
+          })
+          // console.log(colorsToAdd);
+          updateRouteColors(previousRouteColors => ({...previousRouteColors, ...colorsToAdd}));
+        }
+
+        }
+        // setLayers([generateArcData(journeyData), scatterLayer])
+      })
+      .finally(() => {
+        busTimer.nextTimeoutId = setTimeout(
+          () => setBusTimer({ id: busTimer.nextTimeoutId }),
+          REFRESH_TIME
+        );
+      });
+
+    return () => {
+      clearTimeout(busTimer.nextTimeoutId);
+      busTimer.id = null;
+    };
+  }, [busTimer]);
+
+    //  useEffect(() => {
+  //   console.log("routeColors: ", routeColors);
+
+  //   if (logTimer.id !== null){
+  //     logTimer.nextTimeoutId = setTimeout(
+  //       () => setLogTimer({ id: logTimer.nextTimeoutId }),
+  //       REFRESH_TIME
+  //     );
+  //   }
+  //   return () => {
+  //     clearTimeout(logTimer.nextTimeoutId);
+  //     logTimer.id = null;
+  //   };
+  // }, [logTimer]);
+  
   /*********************************************************
    *                   LAYERS                               *
    *********************************************************/
+
+
    const busLayer2 =
    busData &&
    new ScatterplotLayer({
@@ -183,15 +256,13 @@ const Homepage = () => {
      opacity: 1,
      stroked: false,
      filled: true,
-     radiusScale: 8,
+     radiusScale: 2,
      radiusMinPixels: 1,
-     radiusMaxPixels: 100,
+     radiusMaxPixels: 5,
      lineWidthMinPixels: 1,
      getPosition: (d) => d.coordinates,
-     getRadius: (d) => 55,
-     getFillColor: (d) => (d.route % 2 ? [255, 0, 0, 144] : [0, 0, 255, 144]), // true - red (odd) : false = default
-     // getFillColor: (d) =>
-     //   d.isHostile ? [0, 255, 0, 144] : [255, 255, 212, 144],
+     getRadius: (d) => 20,
+     getFillColor: (d) => {if (d.route in routeColors){return [routeColors[d.route]["r"], routeColors[d.route]["g"], routeColors[d.route]["b"], 255 - ((((DATE.getTime()/1000) - d.timeStamp)/((DATE.getTime()/1000) - 1651009757)) * 255)];} return [0,0,0,100];},
      onClick: (info, event) => showBusData(info, event),
      getLineColor: (d) => [255, 255, 0],
      onHover: ({ object, x, y }) => {
@@ -221,134 +292,29 @@ const Homepage = () => {
         window.location.reload();
     }
 
-    const getData = () => {
-        console.log("calling /query endpoint");
-        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-
-        console.log(accessToken)
-        axios.post('https://api.dev.koverse.com/query',
-        {
-                "datasetId": "e7be3620-9d16-4e42-91a9-50de15b3d692",
-                "expression": "SELECT * FROM \"e7be3620-9d16-4e42-91a9-50de15b3d692\"",
-                "limit": 0,
-                "offset": 0
-        }, 
-        {
-            headers: {
-              "Authorization": "Bearer " + accessToken
-            }
-        }
-        )
-        .then(response => {
-            // store response token in local storage
-            console.log("Data received");
-            console.log(response);
-        })
-        .catch(err => {
-            console.log("DATA NOT RECEIVED")
-        })
-
-    }
-
-    const getIndices = () => {
-        console.log("calling /indexes endpoint");
-        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-
-        console.log(accessToken)
-        axios.get('https://api.dev.koverse.com/indexes',
-        {
-                "datasetId": "e7be3620-9d16-4e42-91a9-50de15b3d692",
-                // "fields": true,
-                // "limit": 0,
-        }, 
-        {
-            headers: {
-              "Authorization": "Bearer " + accessToken
-            }
-        }
-        )
-        .then(response => {
-            // store response token in local storage
-            console.log("Data received");
-            console.log(response);
-        })
-        .catch(err => {
-            console.log("DATA NOT RECEIVED")
-        })
-    }
-
-    /*const writeData = () => {
-        console.log("calling /query endpoint");
-        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-
-        //"/pokemon?limit=1000"
-        console.log(accessToken)
-        //axios.get("http://localhost:5000/callback", {params: {code: code}})
-        //axios.post('https://api.dev.koverse.com/write?datasetId=8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4', 
-        axios.post('https://api.dev.koverse.com/write?datasetId=', {params: {datasetId: "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4"}}, 
-        {
-            "additionalProp1": {
-                "Colour": "M",
-                "Cpgmg": "20.01",
-                "Individual": "201",
-                "Population": "2",
-                "Ppgmg": "NA",
-                "Sex": "M",
-                "Tpgmg": "5.35",
-            },
-            "additionalProp2": {
-                "Colour": "D",
-                "Cpgmg": "20.02",
-                "Individual": "202",
-                "Population": "2",
-                "Ppgmg": "NA",
-                "Sex": "M",
-                "Tpgmg": "5.35",
-            },
-        }, 
-        {
-            headers: {
-              "Authorization": "Bearer " + accessToken,
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS",
-              "Access-Control-Allow-Headers": "Origin, Content-Type, Accept, Authorization, X-Request-With"
-            }
-        }
-        )
-        .then(response => {
-            // store response token in local storage
-            console.log("Added records to wildlife data");
-            console.log(response);
-        })
-        .catch(err => {
-            console.log("DID NOT SUCCESSFULLY WRITE TO WILDLIFE DATASET")
-        })
-    }*/
-
-
   
-
     useEffect(() => {
         // get user login credentials
-        axios.post('https://api.dev.koverse.com/authentication', 
-        {
-                "strategy": "jwt",
-                "accessToken": localStorage.getItem('token')
-        })
-        .then(response => {
-            // store response token in local storage
-            console.log(response);
-            localStorage.setItem("user", JSON.stringify(response.data))
-            setUserDisplayName(response.data.user.displayName);        
-            setUserEmail(response.data.user.email); 
-        })
+        const accessToken = localStorage.getItem("token")
+        axios.get('http://localhost:5000/getCred',
+        {params: {token: accessToken}})
+        .then(res => 
+          {
+            console.log("received credentials: ")
+            console.log(res)
+            // save user in local storage in order to refer to access token
+            localStorage.setItem("user", JSON.stringify(res.data))
+            // store username and email
+            setUserDisplayName(res.data.user.displayName);        
+            setUserEmail(res.data.user.email); 
+ 
+          })
         .catch(err => {
+            console.log(err)
             console.log("Unable to get user credentials")
-            logout();
-            navigate("/");
-            window.location.reload();
+            logout(); // reactivate once authentication is working again
         })
-    }, [])
+      }, [])
 
     return (
         <div>
@@ -361,13 +327,13 @@ const Homepage = () => {
                     <Button style={{color: 'white', background: 'gray'}}
                     onClick={()=> {logout()}}
                     >Log-out</Button>
-                    <Button style={{color: 'white', background: 'gray'}}
+                    {/* <Button style={{color: 'white', background: 'gray'}}
                     onClick={()=> {getData()}}
                     >Get Data</Button>
 
                     <Button style={{color: 'white', background: 'gray'}}
                     onClick={()=> {getIndices()}}
-                    >Get indices</Button>
+                    >Get indices</Button> */}
                     {/* <Button style={{color: 'white', background: 'gray'}}
                     onClick={()=> {writeData()}}
                     >Write Data</Button> */}

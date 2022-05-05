@@ -177,7 +177,7 @@ def create_route_indexed_data(kdp4_df:pd.DataFrame)->str:
 
 
 @dag(
-    schedule_interval="* * * 1 *",
+    schedule_interval="0 * * * *",
     start_date=datetime.datetime(2021, 1, 1),
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
@@ -210,7 +210,7 @@ def clean_transform_denver_protobuf():
         kdp4_df.drop("update_count", axis=1, inplace=True)
 
         deduplicated_data = deduplicate_kdp4_data(kdp4_df, Variable.get("update_iter_rtdClean"))
-        
+
         # response = write_to_kdp4(deduplicated_data, CLEANED_DATASET_ID, TOKEN)
         response = write_to_sqlite(deduplicated_data, SQLITE_CLEANED_TABLE, CLEAN_TABLE_SCHEMA)
 

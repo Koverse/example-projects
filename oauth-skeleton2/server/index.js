@@ -9,7 +9,14 @@ const jwt = require("jsonwebtoken")
 
 const { AuthorizationCode } = require('simple-oauth2');
 
+var AppDAO = require('./daoj.js');
+
 const port = 5000;
+
+console.log(AppDAO);
+
+const DBConn = new AppDAO("../../sqlite-standin/kdp4SolutionsDB");
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 // /public or /build?
@@ -42,15 +49,15 @@ createApplication(({ app, callbackUrl }) => {
 
   const client = new AuthorizationCode({
     client: {
-      id: '8a188176c77b94601170a864f66063b32edd592a5e369472fef69db8826ef97a',
+      id: '66e63d65b6d0e150e6d02776e734188b0767fec5591005332b9e4a920b8371b7',
       //id: '444a0f8a0c2dabfdb37c3f54afda14390eb7f1eef09aa78e0fd5f6c7576c324f',
       //secret: '3964abcb8ad7cda385696a7c4bd7edf8a25804bb9d89c54546f051694cb30400',
-      secret: '672bcd7214f0ebcaa0a9a0c6213d71b865cd440a15a178d2d8536f1a4cc3aece'
+      secret: '40e116dcf9a8fa0fa9b6719d9d313293939b7515cfab70287819ae3efd9607ec'
     },
     auth: {
-      tokenHost: 'https://api.dev.koverse.com',
+      tokenHost: 'https://api.staging.koverse.com',
       tokenPath: '/oauth2/token',
-	    authorizeHost: 'https://api.dev.koverse.com',
+	    authorizeHost: 'https://api.staging.koverse.com',
       authorizePath: '/oauth2/auth',
     }
   });
@@ -66,7 +73,6 @@ createApplication(({ app, callbackUrl }) => {
   // Initial page redirecting to Github
   app.get('/auth', (req, res) => {
     console.log("/auth was called");
-    console.log(authorizationUri);
     res.redirect(authorizationUri);
   });
 
@@ -82,16 +88,16 @@ createApplication(({ app, callbackUrl }) => {
 		console.log('CODE', code)
     try {
       const accessToken = await client.getToken(options);
-
+      
       console.log('The resulting token: ', accessToken.token);
       loggedInState = true;
 
       return res.status(200).json(accessToken).send();
-      // return res.redirect('http://localhost:3000/auth/success') 
+      // return res.redirect('http://localhost:3000/auth/success')
     } catch (error) {
       console.error('Access Token Error or unable to get user credentials', error);
       loggedInState = false;
-      return res.status(500).json('Authentication failed');    
+      return res.status(500).json('Authentication failed');
     }
   });
 
@@ -104,4 +110,41 @@ createApplication(({ app, callbackUrl }) => {
     console.log(loggedInState)
     res.json(loggedInState)
   })
+
+  app.get("/getCred", (req,res) => {
+    console.log("entered /getCred")
+    const { token } = req.query;
+    console.log(token)
+
+    axios.post('https://api.staging.koverse.com/authentication', 
+        {
+          "strategy": "jwt",
+          "accessToken": token
+
+        })
+        .then(response => {
+            // store response token in local storage
+            console.log("Credentials received");
+            console.log(response);
+            res.send(response.data)
+        })
+        .catch(err => {
+            console.log("DATA NOT RECEIVED")
+        })
+  })
+
+  app.get("/get_all_SQLITE", (req, res) => {
+    console.log("entered /get_all_SQLITE")
+    console.log("req: ", req.query["query"]);
+    const query = req.query["query"];
+    DBConn.all(query)
+      .then(
+        response => {
+          console.log(response);
+          res.send(response)
+        }
+      )
+
+  })
+
 });

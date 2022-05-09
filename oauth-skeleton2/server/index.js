@@ -5,8 +5,6 @@ const app = require('express')();
 var cookieParser = require('cookie-parser');
 var cors = require('cors')
 const axios = require('axios');
-const request = require('request');
-const jwt = require("jsonwebtoken")
 const moment = require("moment");
 
 const { AuthorizationCode } = require('simple-oauth2');
@@ -22,7 +20,6 @@ app.use(cors());
 let loggedInState = false;
 
 const createApplication = (cb) => {
-  //const callbackUrl = 'http://localhost:5000/callback';
   const callbackUrl = 'http://localhost:3000/auth/koverse'
 
   app.listen(port, (err) => {
@@ -44,16 +41,12 @@ createApplication(({ app, callbackUrl }) => {
 
   const client = new AuthorizationCode({
     client: {
-      //id: '2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75',
       id: '66e63d65b6d0e150e6d02776e734188b0767fec5591005332b9e4a920b8371b7',
       secret: '40e116dcf9a8fa0fa9b6719d9d313293939b7515cfab70287819ae3efd9607ec',
-      //secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
     },
     auth: {
       tokenHost: 'https://api.staging.koverse.com',
-      //tokenHost: 'https://api.dev.koverse.com',
       tokenPath: '/oauth2/token',
-	    //authorizeHost: 'https://api.dev.koverse.com',
       authorizeHost: 'https://api.staging.koverse.com',
       authorizePath: '/oauth2/auth',
     }
@@ -62,8 +55,6 @@ createApplication(({ app, callbackUrl }) => {
   // Authorization uri definition
   const authorizationUri = client.authorizeURL({
     redirect_uri: callbackUrl,
-    // scope: 'notifications',
-    //state: '3(#0/!~56e' // auth/koverse?
     state: '/auth/success'
   });
 
@@ -91,7 +82,6 @@ createApplication(({ app, callbackUrl }) => {
       loggedInState = true;
 
       return res.status(200).json(accessToken).send();
-      // return res.redirect('http://localhost:3000/auth/success') 
     } catch (error) {
       console.error('Access Token Error or unable to get user credentials', error);
       loggedInState = false;
@@ -112,7 +102,6 @@ createApplication(({ app, callbackUrl }) => {
   app.get("/getData3", (req,res) => {
     console.log("entered /getData3")
     const { token } = req.query;
-    //console.log(token)
     let now = moment().subtract("5", "minutes").format("X")
     console.log("current time: " + now)
     axios.post('https://api.staging.koverse.com/query', 
@@ -132,7 +121,6 @@ createApplication(({ app, callbackUrl }) => {
             // store response token in local storage
             console.log("data received");
             console.log(response.data)
-            //console.log(response);
             res.send(response.data)
         })
         .catch(err => {
@@ -156,12 +144,10 @@ createApplication(({ app, callbackUrl }) => {
         .then(response => {
             // store response token in local storage
             console.log("Credentials received");
-            //console.log(response);
             res.send(response.data)
         })
         .catch(err => {
             console.log("CREDENTIALS NOT RECEIVED")
-            // redirect user to login page from here?
         })
 
   })

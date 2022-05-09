@@ -122,13 +122,6 @@ createApplication(({ app, callbackUrl }) => {
       "limit": 200,
       "offset": 0
     }, 
-    // axios.post('https://api.staging.koverse.com/query', 
-    // {
-    //   "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
-    //   "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"latitude\" = 39.74006652832031",
-    //   "limit": 15,
-    //   "offset": 0
-    // }, 
         {
             headers: {
               "Authorization": "Bearer " + token            
@@ -167,7 +160,7 @@ createApplication(({ app, callbackUrl }) => {
             res.send(response.data)
         })
         .catch(err => {
-            console.log("DATA NOT RECEIVED")
+            console.log("CREDENTIALS NOT RECEIVED")
             // redirect user to login page from here?
         })
 

@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from './components/Login/Login';
-import Map from './components/Homepage/Map2';
 import Homepage from './components/Homepage/Homepage';
 import AuthCheck from "./components/AuthCheck/AuthCheck";
 
@@ -24,7 +23,6 @@ function App() {
           
         }
         
-
         <Route path='/auth/success' element={<Homepage/>} />
         {/* <Route path='/auth/success' element={<Map/>} /> */}
       

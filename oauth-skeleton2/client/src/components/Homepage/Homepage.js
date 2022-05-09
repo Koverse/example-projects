@@ -1,32 +1,18 @@
-import React, { useEffect, useState, useContext, useRef, useMemo} from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback} from "react";
 import axios from 'axios';
-import { Button} from '@material-ui/core';
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../Auth/AuthContext";
+import Page from "../PageTemplate/index";
+
 import moment from "moment";
-import ReactMapGL, {Marker, NavigationControl, FullscreenControl} from 'react-map-gl'
+import { InteractiveMap, Marker } from "react-map-gl";
+import DeckGL from "@deck.gl/react";
 
-const fullscreenControlStyle = {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  padding: "10px"
-};
-
-const navStyle = {
-  position: "absolute",
-  top: 36,
-  left: 0,
-  padding: "10px"
-};
+import Geocoder from "react-map-gl-geocoder";
+import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 const Homepage = () => {
 
-    const [userDisplayName, setUserDisplayName] = useState('');
-    const [userEmail, setUserEmail] = useState('');
-    const [recordOne, setRecordOne] = useState('');
-
-    const navigate = useNavigate();
     const {loggedIn} = useContext(AuthContext);
 
     const [adsbData, setAdsbData] = useState([]);
@@ -36,8 +22,6 @@ const Homepage = () => {
       );
     const REFRESH_TIME = 25000;
     //const REFRESH_TIME = 10000;
-
-    const MAPBOX_TOKEN = 'pk.eyJ1IjoiaW5kaXJhamhlbm55IiwiYSI6ImNsMmc1NGtlYzAwbDczamx3OXpnZ3NrNzMifQ.ei_QTtV_inPDuU_SKQ1BBA';
 
     const [viewport, setViewport] = useState({
       longitude: -104.991531,
@@ -49,73 +33,13 @@ const Homepage = () => {
       pitch: 0
   })
     const mapRef = useRef();
+    const geocoderContainerRef = useRef();
 
-    const blueMarker = "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+    const handleViewportChange = useCallback(
+      (newViewport) => setViewport(newViewport),
+      []
+    );
 
-    const logout = () => {
-      console.log("Remove token and log out");
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      //call logout endpoint
-      const loggedInState = axios.get("http://localhost:5000/logout");
-      console.log("loggedInState: " + loggedInState)
-
-      navigate("/");
-      window.location.reload();
-    }
-
-     // press "Get data" button to render one of the 22 received data records on the page
-     const getData3 = () => {
-       console.log("Data already in adsbData var")
-       console.log(adsbData)
-       const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
-       axios.get('http://localhost:5000/getData3', {params: {token: accessToken}})
-      .then(res => 
-        {
-          console.log("received data: ")
-          console.log(res)
-          // generate a random number up to 22
-          let rand = Math.random() * 22;
-          rand = Math.floor(rand);
-          setRecordOne(JSON.stringify(res.data.records[rand]))
-        })
-      .catch(err => {
-          console.log("DID NOT receive data: ")
-          console.log(err)
-      })
-    }
-
-    useEffect(() => {
-      // get user login credentials
-      // send token as a parameter
-      console.log("test")
-
-      const accessToken = localStorage.getItem("token")
-      axios.get('http://localhost:5000/getCred', 
-      {params: {token: accessToken}})
-      .then(res => 
-        {
-          console.log("received credentials: ")
-          console.log(res)
-          // save user in local storage in order to refer to access token
-          localStorage.setItem("user", JSON.stringify(res.data))
-          // store username and email
-          setUserDisplayName(res.data.user.displayName);        
-          setUserEmail(res.data.user.email);
-
-        })
-      .catch(err => {
-          console.log(err)
-          console.log("Unable to get user credentials")
-          logout(); // reactivate once authentication is working again
-      })
-      // index of dataset(s) we're calling from
-      // only look for index of desired dataset once index != null
-      //const index = arr.map(object => object.id).indexOf('c');
-      //console.log(index);
-      // another axios call for all the available datasets in kdp4 workspace we are signed in to
-    }, [])
-  
   useEffect(() => {
     setAdsbData([]);
     console.log(lastFetchTime);
@@ -134,12 +58,7 @@ const Homepage = () => {
         {
           console.log("received data: ")
           console.log(res)
-          // generate a random number up to 15
-          let rand = Math.random() * 15;
-          rand = Math.floor(rand);
-          setRecordOne(JSON.stringify(res.data.records[rand]))
-          // instead of setting like this, map the objects within array of objects to new
-          // array with an object you designed on your own, it will help when making layers
+
           console.log(res.data.records)
           let preFlightData = res.data.records.map((record, index) => {
 
@@ -168,11 +87,9 @@ const Homepage = () => {
               (entry) => dataAsObj[entry["index"]] || entry
             );
   
-            // console.log(sortedData)
           setAdsbData(sortedData);
           setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-          //let now = moment().subtract("2", "minutes")
-          //console.log("current time: " + now)
+
   
         })
       .catch(err => {
@@ -195,56 +112,28 @@ const Homepage = () => {
     };
   }, [dataTimer]);
 
-  // const adsbLayer =
-  // adsbData &&
-  // new ScenegraphLayer({
-  //   loadOptions: GLBLoader,
-  //   id: "plane-layer",
-  //   data: adsbData,
-  //   pickable: true,
-  //   sizeScale: 30,
-  //   scenegraph: MODEL_URL,
-  //   _animations: ANIMATIONS,
-  //   sizeMinPixels: 0.1,
-  //   sizeMaxPixels: 10,
-  //   // need to add these coordinates in
-  //   getPosition: (d) => d.coordinates,
-  //   getOrientation: (d) => [0, -d.track || 0, 90],
-  //   onClick: (info, event) => showPlaneData(info, event),
-  //   onHover: ({ object, x, y }) => {
-  //     setActivePlane({ object, x, y });
-  //   },
-
-  //   getColor: (d) => (d.category == "A1" ? "red" : "white"),
-  //   updateTriggers: {
-  //     getFillColor: ["red", "white"],
-  //   },
-  // });
-
     return (
         <div>
             {loggedIn && 
                 <>
-                    <b>User Credentials: </b>
-                    <p>{userDisplayName}</p>
-                    <p>{userEmail}</p>
-                    <Button style={{color: 'white', background: 'gray'}}
-                    onClick={()=> {logout()}}
-                    >Log-out</Button>
-                    <Button style={{color: 'white', background: 'gray'}}
-                    onClick={()=> {getData3()}}
-                    >Get Data</Button>
-                    <div style={{ height: "100vh" }}>
-                    <ReactMapGL
-                      {...viewport}
-                      width="100vw"
-                      height="100vh"
-                      ref={mapRef}
-                      mapStyle="mapbox://styles/mapbox/dark-v9"
-                      mapboxAccessToken={MAPBOX_TOKEN}
-                      onViewportChange={(viewport) => setViewport(viewport)}
-                      >
-                    {console.log(adsbData)}
+                    <Page>
+                    <div
+                    ref={geocoderContainerRef}
+                    style={{ position: "absolute", top: 15, left: 275, zIndex: 9999 }}
+                    />
+                    <DeckGL
+                        initialViewState={viewport}
+                        controller              
+                    >
+                        <InteractiveMap
+                            {...viewport}
+                            ref={mapRef}
+                            reuseMaps
+                            mapStyle="mapbox://styles/mapbox/dark-v9"
+                            preventStyleDiffing
+                            mapboxApiAccessToken="pk.eyJ1IjoiZ2FycmV0dGNyaXNzIiwiYSI6ImNrYWltOWk5cTAyaXMydHMwdm5rMWd1bXQifQ.xY8kGI7PtunrCBszB_2nCw"
+                        >
+                            {console.log(adsbData)}
                     {adsbData != null && adsbData.map((data, i) => (
                       <Marker  key={`marker-${i}`} longitude={data.coordinates[0]} latitude={data.coordinates[1]} anchor="bottom" >
                         {console.log("adsbData length: " + adsbData.length)}
@@ -252,14 +141,20 @@ const Homepage = () => {
                       </Marker>
                       
                     ))}
-                    <div className="fullscreen" style={fullscreenControlStyle}>
-                      <FullscreenControl />
-                    </div>
-                    <div className="nav" style={navStyle}>
-                      <NavigationControl />
-                    </div>
-                    </ReactMapGL>        
-                    </div>
+                            <Geocoder
+                                mapRef={mapRef}
+                                containerRef={geocoderContainerRef}
+                                onViewportChange={handleViewportChange}
+                                mapboxApiAccessToken={
+                                    "pk.eyJ1IjoiZ2FycmV0dGNyaXNzIiwiYSI6ImNrYWltOWk5cTAyaXMydHMwdm5rMWd1bXQifQ.xY8kGI7PtunrCBszB_2nCw"
+                                }
+                                position="top-left"
+                            />
+                        </InteractiveMap>
+                    </DeckGL>
+                    </Page>
+
+            
                 </> 
             }
         </div>

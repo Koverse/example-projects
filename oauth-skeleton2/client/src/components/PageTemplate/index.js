@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
+import MenuAppBar from '../MenuAppBar/MenuAppBar';
 
 const styles = makeStyles((theme) => ({
   root: {
@@ -16,10 +17,14 @@ const styles = makeStyles((theme) => ({
 const Page = ({ children }) => {
   const classes = styles();
   return (
-    <div className={classes.root}>
+    <>
+      <MenuAppBar/>
+      <div className={classes.root}>
       <div className={classes.toolbar} />
       <main className={classes.main}>{children}</main>
     </div>
+    </>
+
   );
 };
 

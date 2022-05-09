@@ -18,7 +18,6 @@ const AuthCheck = () => {
     
       useEffect(() => {
 
-        // get query params of /auth/koverse/?code and send it/add it to axios callback?
         // can only be called once immediately from KDP redirect since that is the only way params can be passed
         axios.get("http://localhost:5000/callback", {params: {code: code}})
         .then(res => 

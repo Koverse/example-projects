@@ -26,11 +26,11 @@ RUN pip install seaborn \
     pip install python-dotenv
 
 #Additional python packages
-COPY /kdp-api-python-client /srv/user/kdp-api-python-client
-COPY /kdp-python-connector /srv/user/kdp-python-connector
+COPY kdp-api-python-client.zip /srv/user/kdp-api-python-client.zip
+COPY kdp-python-connector.zip /srv/user/kdp-python-connector.zip
 
-RUN pip install /srv/user/kdp-api-python-client/package && \
-    pip install /srv/user/kdp-python-connector
+RUN pip install /srv/user/kdp-api-python-client.zip && \
+    pip install /srv/user/kdp-python-connector.zip
 
 ########## SPARK ##########
 ## Spark dependencies

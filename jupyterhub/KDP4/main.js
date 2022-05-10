@@ -172,6 +172,7 @@ define([
           };
 
 
+          //Hides default cells and clutter from user at notebook startup
           /** @method create_element */
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
@@ -309,17 +310,11 @@ from glob import glob
 
 jwt = os.getenv('ACCESS_TOKEN')
 jwt_expire_time = os.getenv('ACCESS_TOKEN_EXPIRE')
-
-bearer_token = 'Bearer ' + jwt
-headers = {'Authorization': bearer_token}
-user_request = requests.get('https://api.staging.koverse.com/me', headers=headers)
-user = json.loads(user_request.headers['Koverse-User'])
-
-workspace_id = user['workspaceId']
-email = user['email']
-firstName = user['firstName']
-lastName = user['lastName']
-fullName = firstName + ' ' + lastName
+workspace_id = os.getenv('WORKSPACE_ID')
+email = os.getenv('USER')
+firstName = os.getenv('FIRST_NAME')
+lastName = os.getenv('LAST_NAME')
+fullName = os.getenv('DISPLAY_NAME')
 
 path_to_ca_file = ''
 host = 'https://api.staging.koverse.com'

@@ -21,7 +21,24 @@ from oauthenticator.traitlets import Callable
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+from dotenv import load_dotenv
+
 class GenericOAuthenticator(OAuthenticator):
+
+    def __init__(self, *args, **kwargs):
+        super(GenericOAuthenticator, self).__init__(*args, **kwargs)
+        load_dotenv()
+
+    @staticmethod
+    def get_env_variables():
+        return {'G_OAUTH_CALLBACK_URL':os.getenv('G_OAUTH_CALLBACK_URL'),
+                'G_CLIENT_ID':os.getenv('G_CLIENT_ID'),
+                'G_CLIENT_SECRET':os.getenv('G_CLIENT_SECRET'),
+                'G_LOGIN_SERVICE':os.getenv('G_LOGIN_SERVICE'),
+                'G_AUTHORIZE_URL':os.getenv('G_AUTHORIZE_URL'),
+                'G_TOKEN_URL':os.getenv('G_TOKEN_URL'),
+                'G_USERDATA_URL':os.getenv('G_USERDATA_URL')}
+
     login_service = Unicode("OAuth 2.0", config=True)
 
     extra_params = Dict(
@@ -121,10 +138,6 @@ class GenericOAuthenticator(OAuthenticator):
         access_token_expire = token_response['expires_in']
         token_type = token_response['token_type']
 
-        print(access_token)
-        print(token_type)
-        self.log.info(access_token)
-
         # Determine who the logged in user is
         headers = {
             "Accept": "application/json",
@@ -172,6 +185,7 @@ class GenericOAuthenticator(OAuthenticator):
         access_token_expire = token_response['expires_in']
         refresh_token = token_response.get('refresh_token', None)
         scope = token_response.get('scope', '')
+        self.log.info('test')
         if isinstance(scope, str):
             scope = scope.split(' ')
 
@@ -197,6 +211,11 @@ class GenericOAuthenticator(OAuthenticator):
         #access_token added to spawner environment
         spawner.environment['ACCESS_TOKEN'] = auth_state['access_token']
         spawner.environment['ACCESS_TOKEN_EXPIRE'] = auth_state['access_token_expire']
+        spawner.environment['DISPLAY_NAME'] = auth_state['displayName']
+        spawner.environment['FIRST_NAME'] = auth_state['firstName']
+        spawner.environment['LAST_NAME'] = auth_state['lastName']
+        spawner.environment['WORKSPACE_ID'] = auth_state['workspaceId']
+
 
     async def authenticate(self, handler, data=None):
         code = handler.get_argument("code")
@@ -217,19 +236,21 @@ class GenericOAuthenticator(OAuthenticator):
         .strftime('%Y-%m-%d %I:%M:%S %p')
 
         user_data_resp_json = await self._get_user_data(token_resp_json)
-        self.log.info('HELLO')
         self.log.info(user_data_resp_json)
         self.log.info(token_resp_json)
-        print(user_data_resp_json)
-        self.log.error("test", user_data_resp_json)
         #user = json.loads(user_data_resp_json.headers['Koverse-User'])
         #user_jwt = user_data_resp_json.headers['Koverse-Jwt']
 
         user_info = {
             'name': user_data_resp_json['user']['email'],
             'auth_state': {
-                "access_token": user_data_resp_json['accessToken'],
-                "access_token_expire": token_expire_time
+                'access_token': user_data_resp_json['accessToken'],
+                'access_token_expire': token_expire_time,
+                'displayName': user_data_resp_json['user']['displayName'],
+                'firstName': user_data_resp_json['user']['firstName'],
+                'lastName': user_data_resp_json['user']['lastName'],
+                'workspaceId': user_data_resp_json['user']['workspaceId']
+
             },
         }
 
@@ -337,13 +358,12 @@ if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
     )
     c.CryptKeeper.keys = [os.urandom(32)]
 
+env_variables = c.JupyterHub.authenticator_class.get_env_variables()
 
-
-###### This is for generic oauth, not working w/ out
-c.KDPOAuthenticator.oauth_callback_url = 'http://localhost:8000/hub/oauth_callback'
-c.GenericOAuthenticator.client_id = 'ab9e8d4df62d3ff28067e1bdefc3f7678d41294f18bf9edba5912a4f7a6bdcad'
-c.GenericOAuthenticator.client_secret = '04110aa9e35fcdcb1cd90068cd0b79ecee1f40923bd864db823af3439171e5db'
-c.GenericOAuthenticator.login_service = 'KDP'
-c.GenericOAuthenticator.authorize_url = "https://api.staging.koverse.com/oauth2/auth"
-c.GenericOAuthenticator.token_url = 'https://api.staging.koverse.com/oauth2/token'
-c.GenericOAuthenticator.userdata_url = 'https://api.staging.koverse.com/authentication'
+c.KDPOAuthenticator.oauth_callback_url = env_variables['G_OAUTH_CALLBACK_URL']
+c.GenericOAuthenticator.client_id = env_variables['G_CLIENT_ID']
+c.GenericOAuthenticator.client_secret = env_variables['G_CLIENT_SECRET']
+c.GenericOAuthenticator.login_service = env_variables['G_LOGIN_SERVICE']
+c.GenericOAuthenticator.authorize_url = env_variables['G_AUTHORIZE_URL']
+c.GenericOAuthenticator.token_url = env_variables['G_TOKEN_URL']
+c.GenericOAuthenticator.userdata_url = env_variables['G_USERDATA_URL']

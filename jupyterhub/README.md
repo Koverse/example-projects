@@ -9,30 +9,26 @@ For local use set the Url to `http://localhost:8000` and the redirect URL `http:
 
 2. Client ID and Secret
 
-Next add your client ID and secret into the jupyterhub_config.py file within the project. Replace vales for ```c.GenericOAuthenticator.client_id``` and ```c.GenericOAuthenticator.client_secret``` - should be at bottom of config file.
-
-Place additional examples within `/examples`.
-
-3. Create a new personal access token on GitHub and store it in a secure place.
+Next add your client ID and secret into the .env file within the project. Use the same line as `G_CLIENT_ID` and `G_CLIENT_SECRET` and copy paste your key from the KDP4 application to the right of the `=` between the `''` of each respective line.
 
 ## Control the container / Usage:
 
 ### For Mac OS users
 
-1. Open System Preferences -> Security & Privacy -> Privacy -> Full Disk Access and add two applications. 1. Automator.app 2. Script Editor.app. Give access to other applications as needed if there is a prompt for them in a future step.
+1. Open System Preferences -> Security & Privacy -> Privacy -> Accessibility and add two applications. 1. Automator.app 2. Script Editor.app. Give access to other applications as needed if there is a prompt for them in a future step.
 
-2. Run Build.app and right-click to paste in your GitHub access token when prompted. It will automatically build the image, run docker-compose, and open the Jupyter window. (Only need to run once to build the image)
+2. Run Build.app. It will automatically build the image, run docker-compose, and open the Jupyter window. (Only need to run once to build the image)
 
-3. For future usage, you can run ComposeUp.app to run the docker-compose up and launch the Jupyter window automatically.
+3. For future usage, you can run ComposeUp.app to run the docker-compose up and launch the Jupyter window automatically to short cut the build process.
 
 4. When you're done with the container, run Terminate.app to run docker-compose down and close all localhost:8000 windows.
 
 ### For Other OS
 
-1. Create a GithubToken.txt file into this directory and copy paste your personal access token into it.
-2. Navigate to this directory on a command prompt / shell before moving on to the build image stage.
-3. Use ```DOCKER_BUILDKIT=1 docker build --secret id=accesstoken,src=$(pwd)/GithubToken.txt -t koverse/jupyterhub .``` to build the image.
-This sets up users, contains installs to make KDP4 authentication and integration possible, and adds a directory containing example notebooks. It integrates a GitHub access token login to automatically install the KDP packages and ensures access token is not stored inside the container.
+1. Navigate to this directory on a command prompt / shell before moving on to the build image stage.
+2. Use ```docker build -t koverse/jupyterhub .``` to build the image.
+
+This sets up users, contains installs to make KDP4 authentication and integration possible, adds a custom KDP4 notebook extension, and adds a directory containing example notebooks. 
 
 * ```docker-compose up``` starts the container
 * ```docker-compose down``` destroys the container

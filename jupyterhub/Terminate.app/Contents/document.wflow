@@ -494,6 +494,8 @@ end run</string>
 cd "$1"
 
 docker-compose down
+
+docker system prune --volumes --force
 </string>
 					<key>CheckedForUserDefaultShell</key>
 					<true/>
@@ -619,33 +621,33 @@ docker-compose down
 	</array>
 	<key>connectors</key>
 	<dict>
-		<key>3FAE1510-F552-4EC1-B6BC-5926CB8EE045</key>
+		<key>5AA83C4B-D246-46D2-87B7-45F29952801E</key>
 		<dict>
 			<key>from</key>
 			<string>4D8039DA-B298-41D8-AB54-E29452FE572E - 4D8039DA-B298-41D8-AB54-E29452FE572E</string>
 			<key>to</key>
 			<string>D64CFB0D-CADB-47FD-8FCD-85C751F091C6 - D64CFB0D-CADB-47FD-8FCD-85C751F091C6</string>
 		</dict>
-		<key>7BA64DAB-BF4C-43F2-9DC0-F9BE56631F47</key>
-		<dict>
-			<key>from</key>
-			<string>E67027BA-5EC3-41BC-9455-35C56CC9A33B - E67027BA-5EC3-41BC-9455-35C56CC9A33B</string>
-			<key>to</key>
-			<string>4D8039DA-B298-41D8-AB54-E29452FE572E - 4D8039DA-B298-41D8-AB54-E29452FE572E</string>
-		</dict>
-		<key>863173E4-595F-43CD-A737-285B5EB88BE9</key>
-		<dict>
-			<key>from</key>
-			<string>D64CFB0D-CADB-47FD-8FCD-85C751F091C6 - D64CFB0D-CADB-47FD-8FCD-85C751F091C6</string>
-			<key>to</key>
-			<string>EF022666-3D81-4318-B5CF-01CF7F4AD318 - EF022666-3D81-4318-B5CF-01CF7F4AD318</string>
-		</dict>
-		<key>ABF2E128-468B-4E08-B1DB-91A789E84E7A</key>
+		<key>8324F649-1186-48AD-B8FD-9C2B501E47B8</key>
 		<dict>
 			<key>from</key>
 			<string>39C8015E-F2FE-40E5-9F68-57DDE2A92AC7 - 39C8015E-F2FE-40E5-9F68-57DDE2A92AC7</string>
 			<key>to</key>
 			<string>E67027BA-5EC3-41BC-9455-35C56CC9A33B - E67027BA-5EC3-41BC-9455-35C56CC9A33B</string>
+		</dict>
+		<key>9989D821-85EC-4B01-83F7-1BE5C350F028</key>
+		<dict>
+			<key>from</key>
+			<string>E67027BA-5EC3-41BC-9455-35C56CC9A33B - E67027BA-5EC3-41BC-9455-35C56CC9A33B</string>
+			<key>to</key>
+			<string>4D8039DA-B298-41D8-AB54-E29452FE572E - 4D8039DA-B298-41D8-AB54-E29452FE572E</string>
+		</dict>
+		<key>BF74EF04-F36A-47D0-A551-FA542B56376B</key>
+		<dict>
+			<key>from</key>
+			<string>D64CFB0D-CADB-47FD-8FCD-85C751F091C6 - D64CFB0D-CADB-47FD-8FCD-85C751F091C6</string>
+			<key>to</key>
+			<string>EF022666-3D81-4318-B5CF-01CF7F4AD318 - EF022666-3D81-4318-B5CF-01CF7F4AD318</string>
 		</dict>
 	</dict>
 	<key>variables</key>

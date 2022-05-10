@@ -22,16 +22,15 @@ jupyter_client
 
 #additional python packages for data visualization, etc. - Many of the basics ship with jupyterhub base image
 RUN pip install seaborn \
-    pip install ipywidgets
+    pip install ipywidgets \
+    pip install python-dotenv
 
-##### GITHUB OAUTH #####
+#Additional python packages
+COPY /kdp-api-python-client /srv/user/kdp-api-python-client
+COPY /kdp-python-connector /srv/user/kdp-python-connector
 
-#Install KDP Python connector and KDP API
-RUN --mount=type=secret,id=accesstoken \
-export ACCESSTOKEN=$(cat /run/secrets/accesstoken) && \
-pip install git+https://"${ACCESSTOKEN}"@github.com/Koverse/kdp-api-python-client.git@main#subdirectory=package && \
-pip install git+https://"${ACCESSTOKEN}"@github.com/Koverse/kdp-python-connector.git@main#egg=kdp-python-connector
-
+RUN pip install /srv/user/kdp-api-python-client/package && \
+    pip install /srv/user/kdp-python-connector
 
 ########## SPARK ##########
 ## Spark dependencies

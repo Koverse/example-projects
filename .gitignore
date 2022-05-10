@@ -11,5 +11,6 @@ __pycache__
 /oauth-skeleton2/.DS_Store
 .DS_Store
 
+/grafana/user-info-server/node_modules
 # production
 /oauth-skeleton2/client/build

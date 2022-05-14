@@ -68,14 +68,17 @@ def write_to_sqlite(jsonData, table_name, table_schema):
 
                 for k, v in unnested_schema.items():
                     if k in entry.keys():
-                        if k == "update_count":
+                        if not entry[k]:
+                            vals_to_insert.append("NULL")
+                        elif k == "update_count":
                             vals_to_insert.append(str(latest_iter))
                         elif unnested_schema[k] == "TEXT":
                             vals_to_insert.append("'" + str(entry[k]) + "'")
                         else:
                             vals_to_insert.append(str(entry[k]))
+
                     else:
-                        vals_to_insert.append("NULL")   
+                        vals_to_insert.append("NULL")
 
                 vals_to_insert = ", ".join(vals_to_insert)
 
@@ -90,8 +93,12 @@ def write_to_sqlite(jsonData, table_name, table_schema):
             return {"status_code":400, "text":"couldn't write to table {}, {}".format(table_name, e)}
 
 
-def read_table_from_sqlite(table_name):
+def read_table_from_sqlite(table_name, query = ""):
         with sqlite3.connect(SQLITE_LOCATION) as con:
+            if query:
+                df = pd.read_sql_query(query, con)
+                return df
+            
             df = pd.read_sql_query(f"SELECT * FROM {table_name}", con)
             return df
 
@@ -153,7 +160,7 @@ def read_entire_dataset_from_kdp4(datasetId:str, token:str, batch_size:int=100)-
 
 
 def deduplicate_kdp4_data(kdp4_df:pd.DataFrame, update_count:int)->str:
-
+    
     df = kdp4_df.drop_duplicates()
 
     df["update_count"] = update_count
@@ -177,7 +184,7 @@ def create_route_indexed_data(kdp4_df:pd.DataFrame)->str:
 
 
 @dag(
-    schedule_interval="0 * * * *",
+    schedule_interval="* * * * *",
     start_date=datetime.datetime(2021, 1, 1),
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
@@ -241,7 +248,13 @@ def clean_transform_denver_protobuf():
     def create_route_indexing():
 
         # kdp4_df = read_entire_dataset_from_kdp4(CLEANED_DATASET_ID, TOKEN)
-        kdp4_df = read_table_from_sqlite(SQLITE_CLEANED_TABLE)
+        kdp4_df = read_table_from_sqlite(SQLITE_CLEANED_TABLE, f"""SELECT a.latitude, a.longitude, a.route_id, a.timestamp, a.id, a.update_count
+        FROM {SQLITE_CLEANED_TABLE} a
+        INNER JOIN (
+            SELECT id, MAX(update_count) update_count
+            FROM {SQLITE_CLEANED_TABLE}
+            GROUP BY id
+        ) b ON a.id = b.id AND a.update_count = b.update_count""")
 
         indexed_data = create_route_indexed_data(kdp4_df)
 

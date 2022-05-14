@@ -16,3 +16,11 @@ __pycache__
 
 # local DB
 /sqlite-standin/kdp4SolutionsDB
+/sqlite-standin/deps
+/sqlite-standin/Untitled.ipynb
+/sqlite-standin/.ipynb_checkpoints
+
+# map geometry files
+/oauth-skeleton2/client/src/Colorado.json
+/oauth-skeleton2/client/src/denver_partial.json
+/oauth-skeleton2/client/src/export.json

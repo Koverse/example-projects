@@ -6,6 +6,8 @@ services:
       - 8000:8000
       environment:
             JUPYTER_TOKEN: "docker"
+      env_file:
+        - .env
       volumes:
         - ./jupyter_server_config.py:/etc/jupyterhub/jupyterhub_config.py
       container_name:  jupyterhub

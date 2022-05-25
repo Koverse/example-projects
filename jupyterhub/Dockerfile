@@ -23,14 +23,18 @@ jupyter_client
 #additional python packages for data visualization, etc. - Many of the basics ship with jupyterhub base image
 RUN pip install seaborn \
     pip install ipywidgets \
-    pip install python-dotenv
+    pip install python-dotenv \
+    pip install sendgrid \
+    pip install cloudscraper 
 
 #Additional python packages
 COPY kdp-api-python-client.zip /srv/user/kdp-api-python-client.zip
 COPY kdp-python-connector.zip /srv/user/kdp-python-connector.zip
 
+
 RUN pip install /srv/user/kdp-api-python-client.zip && \
     pip install /srv/user/kdp-python-connector.zip
+
 
 ########## SPARK ##########
 ## Spark dependencies
@@ -94,7 +98,6 @@ ENV OAUTHENTICATOR_DIR /srv/oauthenticator
 COPY jupyterhub_config.py /srv/oauthenticator/jupyterhub_config.py
 COPY oauth-setup-and-run-jupyterhub /srv/oauthenticator/oauth-setup-and-run-jupyterhub
 
-
 RUN pip install jupyter_nbextensions_configurator
 
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix  && \
@@ -108,11 +111,9 @@ RUN cd /srv/user/ && pip install -e . --user && \
     jupyter nbextension install KDP4 --sys-prefix && \
     jupyter nbextension enable KDP4/main --sys-prefix
 
-
 # Set up users and launch jupyterhub.
 RUN groupadd jupyter
 ENTRYPOINT ["/bin/bash", "/srv/oauthenticator/oauth-setup-and-run-jupyterhub"]
-
 
 # add example read/write kdp files to user dir in /examples - no save
 RUN mkdir -p /srv/examples
@@ -121,3 +122,13 @@ RUN chown $USER:jupyter /srv/examples \
     && chmod g+s /srv/examples \
     && ln -s /srv/examples /etc/skel/examples
 ADD /examples /srv/examples
+
+RUN mkdir -p /srv/KDP4
+COPY /KDP4 /srv/KDP4
+RUN cd /etc/skel  \
+    && ln -s /srv/KDP4 KDP4
+
+
+
+
+

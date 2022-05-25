@@ -28,7 +28,7 @@ Next add your client ID and secret into the .env file within the project. Use th
 1. Navigate to this directory on a command prompt / shell before moving on to the build image stage.
 2. Use ```docker build -t koverse/jupyterhub .``` to build the image.
 
-This sets up users, contains installs to make KDP4 authentication and integration possible, adds a custom KDP4 notebook extension, and adds a directory containing example notebooks. 
+This sets up users, contains installs to make KDP4 authentication and integration possible, adds a custom KDP4 notebook extension, and adds a directory containing example notebooks.
 
 * ```docker-compose up``` starts the container
 * ```docker-compose down``` destroys the container
@@ -63,8 +63,8 @@ The pre-loaded cells are protected meaning that they can't be deleted or edited,
 
 6. Add a font size drop down menu for users to increase CSS font size of the notebook.
 
-7. Add an option to be notified when jobs are completed with a notification to an email or phone number (with user input inside the notebook), particularly useful with long-running jobs and especially when unexpected errors occur.
+7. Active timer to track how much time left before access token expiration on the main menu bar.
 
-8. Active timer to track how much time left before access token expiration on the main menu bar.
+8. Add a button on the main menu bar to re-authenticate at any time.
 
-9. Add a button on the main menu bar to re-authenticate at any time.
+9. Add proxy list and multiple user agents to bypass frequent 403 status code for text message enabled notifications.

@@ -49,6 +49,29 @@ You also have access to the overwrite_to_kdp, write_to_new_kdp, and write_to_exi
 
 The pre-loaded cells are protected meaning that they can't be deleted or edited, so in case you accidentally overwrite one of the variables. To run only the hidden cells, you need to go to the `Kernel` dropdown menu and click `Restart`.
 
+# Email Notifications Setup
+
+1. Go to https://signup.sendgrid.com/
+2. Login and go to the Email API menu on the left and click on Integration Guide.
+3. Choose Web API > Python
+4. Type in any name for the API key on the second step and click create.
+5. Copy the generated API key and store somewhere.
+6. Use this key and replace it in the .env file for the “SENDGRID_API_KEY” environmental variable.
+7. Make sure to fill in at least one email address for the 'EMAIL_ALERTS' environmental variable. If more than one email, split them with only a ',' (comma) with no spaces in between. The emails in this variable are the ones to receive the actual notifications and error logs.
+
+# Text Notifications Setup
+
+1. Go to https://www.textnow.com/
+2. Sign up and/or login using the desired credential.
+3. On the left hand side, click on the gear/settings icon.
+4. On this page, note the name under the Username.
+5. Sign out of your account and go back to the sign in page.
+6. Click on forgot my password, go to your email, and reset your password to assign a new password. This step won't be necessary if you already created a password when creating an account.
+7. Use the email associated with the TextNow account, the TextNow Username, and the TextNow Password and fill in
+the associated values in the .env file.
+8. Make sure to fill in at least one phone number for the 'PHONE_NUMBER_ALERTS' environmental variable. If more than one phone number, split them with only a ',' (comma) with no spaces in between. The phone numbers in this variable are the ones to receive the actual notifications.
+
+
 ## Future features to implement backlog
 
 1. Automatic variable protection - if an essential variable is overwritten, immediately change the value back to the original value and warn the user that this occurred by creating a markdown cell below the cell the user just executed.

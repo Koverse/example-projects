@@ -31,6 +31,7 @@ define([
       'use strict';
 
       var Notebook = notebook.Notebook;
+      Notebook.trusted = true;
       var TextCell = textcell.TextCell;
       var Cell = cell.Cell;
       var CodeCell = codecell.CodeCell;
@@ -41,13 +42,27 @@ define([
       var absoluteOutExecutionCounter = 1;
       //const DEFAULT_CELL_COUNT = 45;
       const WELCOME_CELL_NUM = 3;
-
       var LAST_DEFAULT_CELL = WELCOME_CELL_NUM;
 
 
       //Special index arrays for tracking beginning/end of tutorial modules
       var RWTI;
 
+
+      var soundAlertsSelection = 'Off';
+      var alarmSounding = false;
+      var textAlertsSelection = 'Off';
+      var emailAlertsSelection = 'Off';
+      var readWriteFlowTutorialSelection = 'Off';
+      var phoneNumber = ''
+
+      const TEXTERRORDELAY = 10;
+      const EMAILERRORDELAY = 10;
+
+      var textErrorTriggerTime = ((new Date().getTime()) / 1000)-(TEXTERRORDELAY+1);
+      var emailErrorTriggerTime = ((new Date().getTime()) / 1000)-(EMAILERRORDELAY+1);
+
+      var music = new Audio("KDP4/Moo.wav");
 
       // Declare mime type as constants
       var MIME_JAVASCRIPT = 'application/javascript';
@@ -60,6 +75,311 @@ define([
       var MIME_GIF = 'image/gif';
       var MIME_PDF = 'application/pdf';
       var MIME_TEXT = 'text/plain';
+
+
+      OutputArea.prototype.append_output = function (json) {
+        this.expand();
+
+        if (this.clear_queued) {
+            this.clear_output(false);
+            this._needs_height_reset = true;
+        }
+
+        var record_output = true;
+        switch(json.output_type) {
+            case 'update_display_data':
+                record_output = false;
+                json = this.validate_mimebundle(json);
+                this.update_display_data(json);
+                return;
+            case 'execute_result':
+                json = this.validate_mimebundle(json);
+                this.append_execute_result(json);
+                break;
+            case 'stream':
+                // append_stream might have merged the output with earlier stream output
+                record_output = this.append_stream(json);
+                break;
+            case 'error':
+                this.append_error(json);
+                console.log(json);
+                console.log('ERROR1');
+                //json['ename']   // NameError
+                //json['evalue']   // name 'x' is not defined
+                //json['traceback']  (need length func and for loop)
+
+                var current_cell_index = Jupyter.notebook.find_cell_index(Jupyter.notebook.get_selected_cell());
+                var errorString = "";
+
+                for (var i = 0; i < json['traceback'].length; i++) {
+                  errorString += json['traceback'][i];
+                  errorString += "\n";
+                }
+
+
+                if (textAlertsSelection === 'On') {
+
+                  if (((new Date().getTime()) / 1000) - textErrorTriggerTime >= TEXTERRORDELAY) {
+
+                    //Putting redefine here instead of bottom to avoid error loops
+                    textErrorTriggerTime = (new Date().getTime()) / 1000;
+
+                // Execute cell below and delete // x+1 if not at the bottom, //x+2 if at the bottom
+                Jupyter.notebook.
+                insert_cell_below('code', current_cell_index).
+                set_text(String.raw`ename = "${json['ename']}"
+evalue = "${json['evalue']}"
+ansiString = """${errorString}"""
+ansi_escape_8bit = re.compile(
+     '(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])'
+)
+errorString = ansi_escape_8bit.sub('', ansiString)
+
+url="https://www.textnow.com/api/sessions"
+login_url = 'https://www.textnow.com/login'
+messaging_url = 'https://www.textnow.com/messaging'
+
+try:
+    %store -r user_agent
+    user_agent
+
+except:
+
+    finduseragent_url = 'https://www.whatsmyua.info/'
+
+    scraper = cloudscraper.create_scraper()
+    req = scraper.get(finduseragent_url)
+    resp = req.text
+    needle = 'id="rawUa">rawUa: '
+    needle_index = resp.find(needle)
+    token_start = needle_index + len(needle)
+    token_end = resp.find('<', token_start)
+    user_agent = resp[token_start:token_end]
+
+    if not any([x in user_agent for x in ['Mozilla', 'Chrome', 'Safari', 'Apple', 'Macintosh', 'Gecko']]):
+        needle = 'WMUArawUa = "'
+        needle_index = resp.find(needle)
+        token_start = needle_index + len(needle)
+        token_end = resp.find('"', token_start)
+        user_agent = resp[token_start:token_end]
+
+        if not any([x in user_agent for x in ['Mozilla', 'Chrome', 'Safari', 'Apple', 'Macintosh', 'Gecko']]):
+            needle = 'class="input">'
+            needle_index = resp.find(needle)
+            token_start = needle_index + len(needle)
+            token_end = resp.find('<', token_start)
+            user_agent = resp[token_start:token_end]
+
+    user_agent = user_agent.strip()
+    %store user_agent
+
+with requests.Session() as s:
+
+    loginGetHeaders = {
+    "User-Agent": """{}""".format(user_agent),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding":"gzip, deflate, br",
+    "DNT": "1",
+    "Referer": "https://www.textnow.com/",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "TE": "trailers"
+    }
+
+    r = s.get(login_url, headers = loginGetHeaders)
+    XSRF_TOKEN = r.cookies.get_dict()['XSRF-TOKEN']
+
+    loginHeaders = {
+        "User-Agent": """{}""".format(user_agent).strip(),
+        "accept": "application/json, text/plain, */*",
+        "accept-language": "en-US,en;q=0.5",
+        "referer": "https://www.textnow.com/login",
+        "x-csrf-token": XSRF_TOKEN,
+        "content-type": "application/json;charset=utf-8",
+        "x-xsrf-token": XSRF_TOKEN,
+        "origin": "https://www.textnow.com",
+        "dnt":"1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "te": "trailers"
+    }
+
+    data = {
+        'remember': True,
+        'username': textnow_email,
+        'password': textnow_password,
+        'disable_session': False,
+
+    }
+
+    r2 = s.post(url, json=data, headers=loginHeaders)
+
+    if r2.status_code != 200:
+        print('Error')
+
+    else:
+
+        r3 = s.get("https://www.textnow.com/api/users/"+textnow_username)
+
+        connectSID = r2.cookies.get_dict()['connect.sid']
+        _csrf = r.cookies.get_dict()['_csrf']
+        textnow_number = json.loads(r3.text)['phone_number']
+
+        scraper = cloudscraper.create_scraper()
+
+        cookies = {
+                    'connect.sid': connectSID,
+                    '_csrf': _csrf,
+                }
+
+        req = scraper.get(messaging_url, cookies=cookies)
+
+        resp = req.text
+        needle = 'csrf-token" content="'
+        needle_index = resp.find(needle)
+        token_start = needle_index + len(needle)
+        token_end = resp.find('"', token_start)
+        csrf_token = resp[token_start:token_end]
+
+        def replace_newlines(text):
+            return re.sub(r'(?<!\\)\n', r'\\n', text)
+
+        notebook_name = "${IPython.notebook.notebook_name}"
+        current_time = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+
+        textMessage = 'Your notebook, {} ran into an error today, {}.'.format(notebook_name, current_time)
+        textMessage += ' Please refer to it or see your email for more details.'
+        text = replace_newlines(textMessage)
+        for phone_number in all_phone_numbers:
+            data = \
+                {
+                    'json': '{"contact_value":"' + phone_number + '","contact_type":2,"message":"' + text + '","read":1,'
+                                                                                                  '"message_direction":2,'
+                                                                                                  '"message_type":1,'
+                                                                                                  '"from_name":"' +
+                            textnow_username + '","has_video":false,"new":true,"date":"' + datetime.now().isoformat() + '"} '
+                }
+
+
+            headers = {
+                        'user-agent': """{}""".format(user_agent).strip(),
+                        'x-csrf-token': csrf_token
+                    }
+
+            scraper.post('https://www.textnow.com/api/users/' + textnow_username + '/messages',
+                                             headers=headers, cookies=cookies, data=data)
+
+
+
+
+`);
+
+                var hideCells = document.querySelectorAll('.code_cell div.input');
+                //hideCells[(current_cell_index+1)].style.display = 'none';
+
+                Jupyter.notebook.execute_cells([(current_cell_index+1)]);
+                Jupyter.notebook.delete_cells([(current_cell_index+1)]);
+
+                executionPad += 1;
+
+              }
+}
+
+              if (emailAlertsSelection === 'On') {
+
+                if (((new Date().getTime()) / 1000) - emailErrorTriggerTime >= EMAILERRORDELAY) {
+
+                  //Put at top instead of bottom to avoid error loops especially while developing
+                  emailErrorTriggerTime = (new Date().getTime()) / 1000;
+
+                Jupyter.notebook.
+                insert_cell_below('code', current_cell_index).
+                set_text(String.raw`ename = "${json['ename']}"
+evalue = "${json['evalue']}"
+ansiString = """${errorString}"""
+ansi_escape_8bit = re.compile(
+     '(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])'
+)
+errorString = ansi_escape_8bit.sub('', ansiString).replace("\n", "<br>")
+
+notebook_name = "${IPython.notebook.notebook_name}"
+current_time = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+
+for e in all_emails:
+    message = Mail(
+        from_email=e,
+        to_emails=e,
+        subject=notebook_name + ' - ' + current_time,
+        html_content=errorString)
+
+
+    sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+    response = sg.send(message)`);
+
+            var hideCells = document.querySelectorAll('.code_cell div.input');
+            //hideCells[(current_cell_index+1)].style.display = 'none';
+
+            Jupyter.notebook.execute_cells([(current_cell_index+1)]);
+            Jupyter.notebook.delete_cells([(current_cell_index+1)]);
+
+            executionPad += 1;
+
+
+          }
+}
+
+                if (soundAlertsSelection === 'On') {
+
+                const randomNumber = Math.floor(Math.random() * 5);
+                music.pause();
+
+                if ([0, 1, 2, 3].includes(randomNumber)) {
+
+                music.src = "KDP4/Moo.wav";
+                music.loop = true;
+                alarmSounding = true;
+                music.play();
+
+              } else {
+
+                music.src = "KDP4/Error.mp3";
+                music.loop = true;
+                alarmSounding = true;
+                music.play();
+              }
+        }
+
+              break;
+          case 'display_data':
+              // append handled below
+              json = this.validate_mimebundle(json);
+              break;
+          default:
+              console.log("unrecognized output type: " + json.output_type);
+              this.append_unrecognized(json);
+      }
+
+      if (json.output_type === 'display_data') {
+          var that = this;
+          this.append_display_data(json, this.handle_appended);
+      } else {
+          this.handle_appended();
+      }
+
+      if (record_output) {
+          this.outputs.push(json);
+      }
+
+      this.events.trigger('output_added.OutputArea', {
+          output: json,
+          output_area: this,
+      });
+  };
 
 
       //Custom Code: Add execution pad so that the In [#] appears correctly
@@ -589,12 +909,12 @@ define([
           var inputCell = document.querySelectorAll('.code_cell');
           protectCells();
 
-        for (var i = 0; i < WELCOME_CELL_NUM; i++) {
+        for (var i = 0; i < (WELCOME_CELL_NUM+1); i++) {
         Jupyter.notebook.execute_cells([i]);
         inputCell[i].style.padding = '0px';
       }
 
-        Jupyter.notebook.select([WELCOME_CELL_NUM]);
+        Jupyter.notebook.select([(WELCOME_CELL_NUM+1)]);
         Jupyter.notebook.edit_mode();
 
 }
@@ -623,7 +943,7 @@ import IPython
 from kdp_connector import KdpConn
 import requests
 import json
-from IPython.display import Markdown
+from IPython.display import Markdown, display, Javascript, HTML
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -632,6 +952,10 @@ from kdp_api.api import write_api
 from kdp_api.api import datasets_api
 import numpy as np
 from glob import glob
+import re
+import cloudscraper
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 jwt = os.getenv('ACCESS_TOKEN')
 jwt_expire_time = os.getenv('ACCESS_TOKEN_EXPIRE')
@@ -641,12 +965,20 @@ firstName = os.getenv('FIRST_NAME')
 lastName = os.getenv('LAST_NAME')
 fullName = os.getenv('DISPLAY_NAME')
 
+all_emails = list(set(os.getenv('EMAIL_ALERTS').split(',')))
+all_phone_numbers = list(set(os.getenv('PHONE_NUMBER_ALERTS').split(',')))
+textnow_username = os.getenv('TEXTNOW_USERNAME')
+textnow_password = os.getenv('TEXTNOW_PASSWORD')
+textnow_email = os.getenv('TEXTNOW_EMAIL')
+
 path_to_ca_file = ''
 host = 'https://api.staging.koverse.com'
 
 kdp_conn = KdpConn(path_to_ca_file=path_to_ca_file, host=host)
 
 loginMessage = "## {} your session ends at: {}".format(fullName, jwt_expire_time)
+
+
 `);
 
 
@@ -995,10 +1327,10 @@ def write_to_existing_kdp(data, target_dataset_id, workspace_id, jwt, batch_size
 
 `);
 
-
 Jupyter.notebook.
 insert_cell_below('code', 1).
 set_text(`Markdown(loginMessage)`);
+
 
       };
 
@@ -1298,6 +1630,18 @@ set_text(`### Since the dataset_id changes with every overwrite in the current i
     }
   };
 
+  var functionsButton = function () {
+      Jupyter.toolbar.add_buttons_group([
+          Jupyter.keyboard_manager.actions.register ({
+              'help': 'Show/hide hidden functions at the top of the notebook',
+              'icon' : 'fas fa-assistive-listening-systems',
+              'handler': showHideFunctions
+          }, 'show-hide-functions', 'test123')
+      ])
+  };
+
+
+
   var clearVariablesReadWriteTutorial = function (index_var) {
 
     Jupyter.notebook.
@@ -1316,14 +1660,11 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
 };
 
-  var showHideReadWriteFlowTutorial = function() {
+  var readWriteFlowTutorialOff = function () {
 
-    var current_cell_index = Jupyter.notebook.find_cell_index(Jupyter.notebook.get_selected_cell());
-
-    this.buttonInputCell = document.querySelectorAll('.code_cell div.input');
-    this.buttonOutputCell = document.querySelectorAll('.code_cell div.output');
-
-    if (this.showReadWriteFlowTutorialCells) {
+      readWriteFlowTutorialSelection = 'Off';
+      document.getElementById('readWriteTutorialOn').style.display = 'none';
+      document.getElementById('readWriteTutorialOff').style.display = 'inline-block';
 
       clearVariablesReadWriteTutorial(RWTI);
 
@@ -1334,16 +1675,19 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
       }
 
       RWTI = [];
-      this.showReadWriteFlowTutorialCells = false;
 
-    } else {
+    };
+
+
+    var readWriteFlowTutorialOn = function () {
+        readWriteFlowTutorialSelection = 'On';
+        document.getElementById('readWriteTutorialOn').style.display = 'inline-block';
+        document.getElementById('readWriteTutorialOff').style.display = 'none';
+
 
         addReadWriteFlowTutorial();
-        this.buttonInputCell = document.querySelectorAll('.code_cell div.input');
-        this.buttonOutputCell = document.querySelectorAll('.code_cell div.output');
 
         RWTI = [LAST_DEFAULT_CELL, (LAST_DEFAULT_CELL+42+1)];
-
 
         LAST_DEFAULT_CELL += 42;
 
@@ -1354,9 +1698,6 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
                             (RWTI[0]+38), (RWTI[0]+40), (RWTI[0]+42)];
 
 
-
-
-      this.showReadWriteFlowTutorialCells = true;
       Jupyter.notebook.select(WELCOME_CELL_NUM);
       Jupyter.notebook.edit_mode();
       Jupyter.notebook.execute_cells([WELCOME_CELL_NUM]);
@@ -1365,33 +1706,184 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
           Jupyter.notebook.execute_cells([i]);
       }
 
-    }
+      };
+
+
+  var readWriteFlowTutorialButtonOff = function () {
+      Jupyter.toolbar.add_buttons_group([
+          Jupyter.keyboard_manager.actions.register ({
+              'help': 'Delete Read/Write Flow Tutorial',
+              'icon' : 'fas fa-trash',
+              'handler': readWriteFlowTutorialOff
+          }, 'show-hide-read-write-flow', 'On')
+      ], 'readWriteTutorialOn')
+  };
+
+  var readWriteFlowTutorialButtonOn = function () {
+      Jupyter.toolbar.add_buttons_group([
+          Jupyter.keyboard_manager.actions.register ({
+              'help': 'Spawn Read/Write Flow Tutorial',
+              'icon' : "fas fa-pencil",
+              'handler': readWriteFlowTutorialOn
+          }, 'show-hide-read-write-flow', 'Off')
+      ], 'readWriteTutorialOff')
+  };
+
+  var adjustSoundAlertOff = function () {
+
+      soundAlertsSelection = 'Off';
+
+      document.getElementById('soundOn').style.display = 'none';
+      document.getElementById('soundOff').style.display = 'inline-block';
+
+  };
+
+  var adjustSoundAlertOn = function () {
+
+      soundAlertsSelection = 'On';
+
+      document.getElementById('soundOn').style.display = 'inline-block';
+      document.getElementById('soundOff').style.display = 'none';
+
+  };
+
+  var adjustSoundAlertButtonOff = function () {
+
+      Jupyter.toolbar.add_buttons_group([
+          Jupyter.keyboard_manager.actions.register ({
+              'help': 'Turn sound alert off',
+              'icon' : "fas fa-volume-up",
+              'handler': adjustSoundAlertOff
+          }, 'sound alert options', 'On')
+      ], 'soundOn')
+  };
+
+  var adjustSoundAlertButtonOn = function () {
+
+    Jupyter.toolbar.add_buttons_group([
+        Jupyter.keyboard_manager.actions.register ({
+            'help': 'Turn sound alert on',
+            'icon' : "fas fa-volume-off",
+            'handler': adjustSoundAlertOn
+        }, 'sound alert options', 'Off')
+    ], 'soundOff')
   };
 
 
+  var stopAlarm = function () {
 
+    if (this.stopAlarm) {
 
+      this.stopAlarm = false;
+      alarmSounding = false;
+      music.pause();
+      music.currentTime = 0;
 
-      var functionsButton = function () {
-          Jupyter.toolbar.add_buttons_group([
-              Jupyter.keyboard_manager.actions.register ({
-                  'help': 'Show/hide hidden functions at the top of the notebook',
-                  'icon' : 'fas fa-assistive-listening-systems',
-                  'handler': showHideFunctions
-              }, 'show-hide-functions', 'test123')
-          ])
+    } else {
+
+      this.stopAlarm = true;
+      alarmSounding = false;
+      music.pause();
+      music.currentTime = 0;
+
+    }
+  };
+
+  var stopAlarmButton = function () {
+      Jupyter.toolbar.add_buttons_group([
+          Jupyter.keyboard_manager.actions.register ({
+              'help': 'Stop Alarm Sound',
+              'icon' : "fas fa-headphones",
+              'handler': stopAlarm
+          }, 'Stop Alarm Sound', 'Stop')
+      ])
+  };
+
+    var enableTextAlertsOff = function () {
+
+        textAlertsSelection = 'Off';
+
+        document.getElementById('textOn').style.display = 'none';
+        document.getElementById('textOff').style.display = 'inline-block';
+
       };
 
-      var readWriteFlowTutorialButton = function () {
-          Jupyter.toolbar.add_buttons_group([
-              Jupyter.keyboard_manager.actions.register ({
-                  'help': 'Show/hide Read/Write flow tutorial',
-                  'icon' : 'fas fa-pencil',
-                  'handler': showHideReadWriteFlowTutorial
-              }, 'show-hide-read-write-flow', 'test1234')
-          ])
+
+      var enableTextAlertsOn = function () {
+          textAlertsSelection = 'On';
+
+          document.getElementById('textOn').style.display = 'inline-block';
+          document.getElementById('textOff').style.display = 'none';
+        };
+
+    var enableTextAlertButtonOff = function () {
+        Jupyter.toolbar.add_buttons_group([
+            Jupyter.keyboard_manager.actions.register ({
+                'help': 'Enable Text Alert on/off',
+                'icon' : 'fas fa-comments',
+                'handler': enableTextAlertsOff
+            }, 'Enable Text Alerts', 'On')
+        ], 'textOn')
+    };
+
+    var enableTextAlertButtonOn = function () {
+        Jupyter.toolbar.add_buttons_group([
+            Jupyter.keyboard_manager.actions.register ({
+                'help': 'Enable Text Alert on/off',
+                'icon' : 'fas fa-comment',
+                'handler': enableTextAlertsOn
+            }, 'Enable Text Alerts', 'Off')
+        ], 'textOff')
+    };
+
+
+    var enableEmailAlertsOff = function () {
+
+        emailAlertsSelection = 'Off';
+
+        document.getElementById('emailOn').style.display = 'none';
+        document.getElementById('emailOff').style.display = 'inline-block';
+
       };
 
+
+      var enableEmailAlertsOn = function () {
+          emailAlertsSelection = 'On';
+
+          document.getElementById('emailOn').style.display = 'inline-block';
+          document.getElementById('emailOff').style.display = 'none';
+        };
+
+
+        var enableEmailAlertButtonOff = function () {
+            Jupyter.toolbar.add_buttons_group([
+                Jupyter.keyboard_manager.actions.register ({
+                    'help': 'Enable Email Alert on/off',
+                    'icon' : 'fas fa-envelope-open',
+                    'handler': enableEmailAlertsOff
+                }, 'Enable Email Alerts', 'On')
+            ], 'emailOn')
+        };
+
+        var enableEmailAlertButtonOn = function () {
+            Jupyter.toolbar.add_buttons_group([
+                Jupyter.keyboard_manager.actions.register ({
+                    'help': 'Enable Email Alert on/off',
+                    'icon' : 'fas fa-envelope',
+                    'handler': enableEmailAlertsOn
+                }, 'Enable Email Alerts', 'textOff')
+            ], 'emailOff')
+        };
+
+
+    var initiateButtons =  function () {
+
+      document.getElementById('soundOn').style.display = 'none';
+      document.getElementById('textOn').style.display = 'none';
+      document.getElementById('emailOn').style.display = 'none';
+      document.getElementById('readWriteTutorialOn').style.display = 'none';
+
+    }
 
       // Run on start
     function load_ipython_extension() {
@@ -1404,7 +1896,18 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
           autoRunCells();
           functionsButton();
-          readWriteFlowTutorialButton();
+          readWriteFlowTutorialButtonOff();
+          readWriteFlowTutorialButtonOn();
+          adjustSoundAlertButtonOff();
+          adjustSoundAlertButtonOn();
+          stopAlarmButton();
+          enableTextAlertButtonOff();
+          enableTextAlertButtonOn();
+          enableEmailAlertButtonOff();
+          enableEmailAlertButtonOn();
+
+          initiateButtons();
+
 
 
 

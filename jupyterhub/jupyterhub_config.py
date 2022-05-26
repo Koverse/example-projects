@@ -22,10 +22,13 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from dotenv import load_dotenv
+from traitlets import traitlets
+
+import shutil
 
 class GenericOAuthenticator(OAuthenticator):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, value='', *args, **kwargs):
         super(GenericOAuthenticator, self).__init__(*args, **kwargs)
         load_dotenv()
 
@@ -37,7 +40,13 @@ class GenericOAuthenticator(OAuthenticator):
                 'G_LOGIN_SERVICE':os.getenv('G_LOGIN_SERVICE'),
                 'G_AUTHORIZE_URL':os.getenv('G_AUTHORIZE_URL'),
                 'G_TOKEN_URL':os.getenv('G_TOKEN_URL'),
-                'G_USERDATA_URL':os.getenv('G_USERDATA_URL')}
+                'G_USERDATA_URL':os.getenv('G_USERDATA_URL'),
+                'PHONE_NUMBER_ALERTS':os.getenv('PHONE_NUMBER_ALERTS'),
+                'EMAIL_ALERTS':os.getenv('EMAIL_ALERTS'),
+                'TEXTNOW_EMAIL':os.getenv('TEXTNOW_EMAIL'),
+                'TEXTNOW_USERNAME':os.getenv('TEXTNOW_USERNAME'),
+                'TEXTNOW_PASSWORD':os.getenv('TEXTNOW_PASSWORD'),
+                'SENDGRID_API_KEY': os.getenv('SENDGRID_API_KEY')}
 
     login_service = Unicode("OAuth 2.0", config=True)
 
@@ -164,6 +173,9 @@ class GenericOAuthenticator(OAuthenticator):
             headers=headers,
             body=urlencode(params),
         )
+
+
+
         #res = self.fetch(req, "fetching user data")
 
         return self.fetch(req)
@@ -216,7 +228,6 @@ class GenericOAuthenticator(OAuthenticator):
         spawner.environment['LAST_NAME'] = auth_state['lastName']
         spawner.environment['WORKSPACE_ID'] = auth_state['workspaceId']
 
-
     async def authenticate(self, handler, data=None):
         code = handler.get_argument("code")
 
@@ -238,6 +249,7 @@ class GenericOAuthenticator(OAuthenticator):
         user_data_resp_json = await self._get_user_data(token_resp_json)
         self.log.info(user_data_resp_json)
         self.log.info(token_resp_json)
+
         #user = json.loads(user_data_resp_json.headers['Koverse-User'])
         #user_jwt = user_data_resp_json.headers['Koverse-Jwt']
 
@@ -250,7 +262,6 @@ class GenericOAuthenticator(OAuthenticator):
                 'firstName': user_data_resp_json['user']['firstName'],
                 'lastName': user_data_resp_json['user']['lastName'],
                 'workspaceId': user_data_resp_json['user']['workspaceId']
-
             },
         }
 
@@ -286,8 +297,6 @@ class GenericOAuthenticator(OAuthenticator):
         return user_info
 
 
-
-
 class LocalGenericOAuthenticator(LocalAuthenticator, GenericOAuthenticator):
     """A version that mixes in local system user creation"""
 
@@ -312,8 +321,6 @@ c.JupyterHub.log_level = 'DEBUG'
 # Shared notebooks
 ##c.Spawner.notebook_dir = '/srv/ipython/examples'
 c.Spawner.args = ['--NotebookApp.default_url=/notebooks']
-
-
 
 # OAuth and user configuration
 c.JupyterHub.authenticator_class = GenericOAuthenticator
@@ -343,8 +350,8 @@ def pre_spawn_hook(spawner):
 # c.DockerSpawner.volumes = {'jupyterhub-user-{username}': notebook_dir}
 
 
-
 c.Spawner.pre_spawn_hook = pre_spawn_hook
+
 
 
 #c.KDPOAuthenticator.enable_auth_state = True
@@ -358,6 +365,10 @@ if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
     )
     c.CryptKeeper.keys = [os.urandom(32)]
 
+#c.NotebookApp.allow_origin='*'
+#c.NotebookApp.allow_remote_access = True
+#c.NotebookApp.allow_root = True
+
 env_variables = c.JupyterHub.authenticator_class.get_env_variables()
 
 c.KDPOAuthenticator.oauth_callback_url = env_variables['G_OAUTH_CALLBACK_URL']
@@ -367,3 +378,15 @@ c.GenericOAuthenticator.login_service = env_variables['G_LOGIN_SERVICE']
 c.GenericOAuthenticator.authorize_url = env_variables['G_AUTHORIZE_URL']
 c.GenericOAuthenticator.token_url = env_variables['G_TOKEN_URL']
 c.GenericOAuthenticator.userdata_url = env_variables['G_USERDATA_URL']
+c.GenericOAuthenticator.phone_number_alerts = env_variables['PHONE_NUMBER_ALERTS']
+c.GenericOAuthenticator.email_alerts = env_variables['EMAIL_ALERTS']
+c.GenericOAuthenticator.textnow_email= env_variables['TEXTNOW_EMAIL']
+c.GenericOAuthenticator.textnow_username = env_variables['TEXTNOW_USERNAME']
+c.GenericOAuthenticator.textnow_password = env_variables['TEXTNOW_PASSWORD']
+
+c.Spawner.environment =  {'PHONE_NUMBER_ALERTS': env_variables['PHONE_NUMBER_ALERTS'],
+                          'EMAIL_ALERTS': env_variables['EMAIL_ALERTS'],
+                          'TEXTNOW_EMAIL': env_variables['TEXTNOW_EMAIL'],
+                          'TEXTNOW_USERNAME': env_variables['TEXTNOW_USERNAME'],
+                          'TEXTNOW_PASSWORD': env_variables['TEXTNOW_PASSWORD'],
+                          'SENDGRID_API_KEY': env_variables['SENDGRID_API_KEY']}

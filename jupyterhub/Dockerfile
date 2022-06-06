@@ -32,8 +32,10 @@ COPY kdp-api-python-client.zip /srv/user/kdp-api-python-client.zip
 COPY kdp-python-connector.zip /srv/user/kdp-python-connector.zip
 
 
+
 RUN pip install /srv/user/kdp-api-python-client.zip && \
     pip install /srv/user/kdp-python-connector.zip
+
 
 
 ########## SPARK ##########

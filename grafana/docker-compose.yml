@@ -1,0 +1,36 @@
+# Update certs to locations on machine.
+version: "3"
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-enterprise:8.4.4
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=admin"
+      - GF_USERS_ALLOW_SIGN_UP=true
+      - GF_SERVER_HTTP_PORT=3001
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_vol:/var/lib/grafana # Volume to persist configuration between restarts
+      - ./config/grafana.ini:/etc/grafana/grafana.ini # Grafana config
+    ports:
+      - '3001:3001'
+    networks:
+      my-network-name:
+        aliases:
+          - grafana
+  oauth-server:
+    container_name: userinfo
+    image: koverse/userinfo
+    ports:
+      - '3005:3005'
+    networks:
+      my-network-name:
+        aliases:
+          - userinfo  
+
+volumes:
+  grafana_vol:
+
+networks:
+  my-network-name:

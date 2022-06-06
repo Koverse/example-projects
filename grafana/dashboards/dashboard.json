@@ -1,0 +1,149 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.4.4",
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "flight_aware_ts",
+              "text": "Timestamp",
+              "type": "timestamp_epoch_s"
+            },
+            {
+              "selector": "alt_geom",
+              "text": "Altitude",
+              "type": "number"
+            },
+            {
+              "selector": "flight",
+              "text": "Flight",
+              "type": "string"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "GTy0Fpl7k"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "refId": "A",
+          "root_selector": "records",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.staging.koverse.com/query",
+          "url_options": {
+            "data": "{\n      \"datasetId\": \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\",\n      \"expression\": \"SELECT * FROM \\\"c83a25f3-26ff-487c-a5cf-b9ba6301d518\\\" where \\\"flight_aware_ts\\\" > ${__from:date:seconds}\",\n      \"limit\": 2000,\n      \"offset\": 0\n}",
+            "headers": [
+              {
+                "key": "Authorization",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6Im5hdGhhbnRpc2RhbGVkb2xsYWhAa292ZXJzZS5jb20iLCJpYXQiOjE2NTE2OTIwNDUsImV4cCI6MTY1MTc3ODQ0NSwiaXNzIjoia292ZXJzZSIsInN1YiI6IjI1YWYzNTlmLTkwOWYtNGVlMS04NzE4LTYyZDczZWFkNDY0YyIsImp0aSI6IjQyMjliNzdkLWYyZTQtNGRiYS04OWNlLTZkY2QzNWJiYzMyMyJ9.AzEF73ucd-qK8IOkYWHdQJKiHxkKThGnn7Cz_2WD5GE"
+              }
+            ],
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "Panel Title",
+      "type": "gauge"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 35,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "",
+  "title": "New dashboard",
+  "uid": "8xcQFp_7k",
+  "version": 9,
+  "weekStart": ""
+}

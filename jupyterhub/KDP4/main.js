@@ -12,7 +12,7 @@ define([
   'notebook/js/completer',
   'codemirror/lib/codemirror',
   'notebook/js/textcell',
-  'notebook/js/notebook',
+  'notebook/js/notebook'
     ], function(requirejs,
     $,
     moment,
@@ -50,7 +50,6 @@ define([
 
 
       var soundAlertsSelection = 'Off';
-      var alarmSounding = false;
       var textAlertsSelection = 'Off';
       var emailAlertsSelection = 'Off';
       var readWriteFlowTutorialSelection = 'Off';
@@ -63,6 +62,7 @@ define([
       var emailErrorTriggerTime = ((new Date().getTime()) / 1000)-(EMAILERRORDELAY+1);
 
       var music = new Audio("KDP4/Moo.wav");
+      var buttonSound = new Audio("KDP4/TurnOn.wav");
 
       // Declare mime type as constants
       var MIME_JAVASCRIPT = 'application/javascript';
@@ -75,6 +75,115 @@ define([
       var MIME_GIF = 'image/gif';
       var MIME_PDF = 'application/pdf';
       var MIME_TEXT = 'text/plain';
+
+
+      var modal = function (options) {
+
+        var modal = $("<div/>")
+            .addClass("modal")
+            .addClass("fade")
+            .attr("role", "dialog");
+        var dialog = $("<div/>")
+            .addClass("modal-dialog")
+            .appendTo(modal);
+        var dialog_content = $("<div/>")
+            .addClass("modal-content")
+            .appendTo(dialog);
+        if(typeof(options.body) === 'string' && options.sanitize !== false){
+            options.body = $("<p/>").text(options.body);
+        }
+        dialog_content.append(
+            $("<div/>")
+                .addClass("modal-header")
+                .mousedown(function() {
+                  $(".modal").draggable({handle: '.modal-header'});
+                })
+                .append($("<button>")
+                    .attr("type", "button")
+                    .addClass("close")
+                    .attr("data-dismiss", "modal")
+                    .attr("aria-hidden", "true")
+                    .html("&times;")
+                ).append(
+                    $("<h4/>")
+                        .addClass('modal-title')
+                        .text(options.title || "")
+                )
+        ).append(
+            $("<div/>")
+                .addClass("modal-body")
+                .append(
+                    options.body || $("<p/>")
+                )
+        );
+
+        var footer = $("<div/>").addClass("modal-footer");
+
+        var default_button;
+
+        for (var label in options.buttons) {
+            var btn_opts = options.buttons[label];
+            var button = $("<button/>")
+                .addClass("btn btn-default btn-sm")
+                .attr("data-dismiss", "modal")
+                .text(i18n.msg.translate(label).fetch());
+            if (btn_opts.id) {
+                button.attr('id', btn_opts.id);
+            }
+            if (btn_opts.click) {
+                button.click($.proxy(btn_opts.click, dialog_content));
+            }
+            if (btn_opts.class) {
+                button.addClass(btn_opts.class);
+            }
+            footer.append(button);
+            if (options.default_button && label === options.default_button) {
+                default_button = button;
+            }
+        }
+        if (!options.default_button) {
+            default_button = footer.find("button").last();
+        }
+        dialog_content.append(footer);
+        // hook up on-open event
+        modal.on("shown.bs.modal", function () {
+            setTimeout(function () {
+                default_button.focus();
+                if (options.open) {
+                    $.proxy(options.open, modal)();
+                }
+            }, 0);
+        });
+
+        // destroy modal on hide, unless explicitly asked not to
+        if (options.destroy === undefined || options.destroy) {
+            modal.on("hidden.bs.modal", function () {
+                music.pause();
+                music.currentTime = 0;
+                modal.remove();
+            });
+        }
+        modal.on("hidden.bs.modal", function () {
+            if (options.notebook) {
+                var cell = options.notebook.get_selected_cell();
+                if (cell) cell.select();
+            }
+            if (options.keyboard_manager) {
+                options.keyboard_manager.enable();
+                options.keyboard_manager.command_mode();
+            }
+        });
+
+        if (options.keyboard_manager) {
+            options.keyboard_manager.disable();
+        }
+
+        if(options.backdrop === undefined){
+          options.backdrop = 'static';
+        }
+
+        return modal.modal(options);
+    };
 
 
       OutputArea.prototype.append_output = function (json) {
@@ -342,17 +451,29 @@ for e in all_emails:
 
                 music.src = "KDP4/Moo.wav";
                 music.loop = true;
-                alarmSounding = true;
                 music.play();
 
               } else {
 
                 music.src = "KDP4/Error.mp3";
                 music.loop = true;
-                alarmSounding = true;
                 music.play();
               }
-        }
+
+              modal({
+                  title: 'Your notebook ran into an error',
+                  body: 'Close this window to stop the alarm.',
+                  buttons: {
+                      'Exit': {
+                          click : function () {
+                            music.pause();
+                            music.currentTime = 0;
+
+                          }
+                      }
+                  }
+              });
+          }
 
               break;
           case 'display_data':
@@ -1045,7 +1166,7 @@ def dfs_difference_types(df1, df2):
 
     return mergeData
 
-def overwrite_to_kdp(data, dataset_id, workspace_id, jwt, batch_size, starting_record_id, equivalenceCheck):
+def overwrite_to_kdp(data, dataset_id, batch_size, starting_record_id, equivalenceCheck):
     '''
     This function provides a way to more directly write over an existing dataset name by deleting the existing
     dataset and replacing it with the transformed version.
@@ -1063,8 +1184,6 @@ def overwrite_to_kdp(data, dataset_id, workspace_id, jwt, batch_size, starting_r
 
     data - pandas df to write to KDP, the one that was read and normalized/transformed.
     dataset_id - the dataset ID of this of the dataset originally read into Jupyter
-    workspace_id - matches initial settings
-    jwt - matches initial settings
     batch_size - matches initial settings
     starting_record_id - matches initial settings
     equivalenceCheck - boolean option to check if input dataframe and reading from KDP are equivalent (having
@@ -1139,7 +1258,7 @@ def overwrite_to_kdp(data, dataset_id, workspace_id, jwt, batch_size, starting_r
 
     return new_dataset_id
 
-def write_to_new_kdp(data, new_dataset_name, workspace_id, jwt, batch_size, starting_record_id, equivalenceCheck):
+def write_to_new_kdp(data, new_dataset_name, batch_size, starting_record_id, equivalenceCheck):
 
     '''
     This function provides a way to more directly write a dataframe into KDP as a new dataset with Pandas.
@@ -1149,8 +1268,6 @@ def write_to_new_kdp(data, new_dataset_name, workspace_id, jwt, batch_size, star
 
     data - pandas df to write to KDP, the one that was read and normalized/transformed.
     dataset_id - the dataset ID of this of the dataset originally read into Jupyter
-    workspace_id - matches initial settings
-    jwt - matches initial settings
     batch_size - matches initial settings
     starting_record_id - matches initial settings
     equivalenceCheck - boolean option to check if input dataframe and reading from KDP are equivalent (having
@@ -1213,7 +1330,7 @@ def write_to_new_kdp(data, new_dataset_name, workspace_id, jwt, batch_size, star
 
     return new_dataset_id
 
-def write_to_existing_kdp(data, target_dataset_id, workspace_id, jwt, batch_size, starting_record_id, ingestCheck, equivalenceCheck, similarCheck, returnNewData):
+def write_to_existing_kdp(data, target_dataset_id, batch_size, starting_record_id, ingestCheck, equivalenceCheck, similarCheck, returnNewData):
 
     '''
     This function provides a way to more directly write into an existing KDP dataset and append additional rows
@@ -1224,8 +1341,6 @@ def write_to_existing_kdp(data, target_dataset_id, workspace_id, jwt, batch_size
 
     data - pandas df to write to KDP, the one that was read and normalized/transformed.
     dataset_id - the dataset ID of this of the dataset originally read into Jupyter
-    workspace_id - matches initial settings
-    jwt - matches initial settings
     batch_size - matches initial settings
     starting_record_id - matches initial settings
     ingestCheck - boolean option to check if ingest is working properly.
@@ -1393,7 +1508,7 @@ starting_record_id = ''
 
 
 #Use write_to_kdp function to write to new dataset on KDP and output associated dataset ID
-dataset_id = write_to_new_kdp(df, 'titanicTest', workspace_id, jwt, batch_size, starting_record_id,
+dataset_id = write_to_new_kdp(df, 'titanicTest', batch_size, starting_record_id,
                           equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1402,7 +1517,7 @@ set_text(`# 2. Append data into a similar existing dataset.`);
 
 Jupyter.notebook.
 insert_cell_above('code', (LAST_DEFAULT_CELL+10)).
-set_text(`df = write_to_existing_kdp(df, dataset_id, workspace_id, jwt, batch_size, starting_record_id,
+set_text(`df = write_to_existing_kdp(df, dataset_id, batch_size, starting_record_id,
                       ingestCheck = True, equivalenceCheck = True, similarCheck = True, returnNewData = True)`);
 
 Jupyter.notebook.
@@ -1449,7 +1564,7 @@ set_text(`### Output results into new dataset on KDP`);
 
 Jupyter.notebook.
 insert_cell_above('code', (LAST_DEFAULT_CELL+18)).
-set_text(`dataset_id = write_to_new_kdp(df, 'titanicTest2', workspace_id, jwt, batch_size, starting_record_id,
+set_text(`dataset_id = write_to_new_kdp(df, 'titanicTest2', batch_size, starting_record_id,
                           equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1475,7 +1590,7 @@ df.head()`);
 Jupyter.notebook.
 insert_cell_above('code', (LAST_DEFAULT_CELL+23)).
 set_text(`df['Fare'] = round(df['Fare'], 1)
-dataset_id = overwrite_to_kdp(df, dataset_id, workspace_id, jwt, batch_size, starting_record_id,
+dataset_id = overwrite_to_kdp(df, dataset_id, batch_size, starting_record_id,
                               equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1507,7 +1622,7 @@ df = pd.read_csv(os.getenv('HOME') + '/examples/titanic.csv')
 df = standardize_titanic(df)
 datasetDate = datetime.today().strftime('%b-%Y')
 
-dataset_id = write_to_new_kdp(df, 'titanicTest_{}'.format(datasetDate), workspace_id, jwt, batch_size, starting_record_id,
+dataset_id = write_to_new_kdp(df, 'titanicTest_{}'.format(datasetDate), batch_size, starting_record_id,
                           equivalenceCheck = True)
 `);
 
@@ -1533,7 +1648,7 @@ datasetDate = datetime.today().strftime('%b-%Y')
 df['DatasetDate'] = datasetDate
 
 #Write to KDP
-dataset_id = write_to_new_kdp(df, 'titanicAppendTest', workspace_id, jwt, batch_size, starting_record_id,
+dataset_id = write_to_new_kdp(df, 'titanicAppendTest', batch_size, starting_record_id,
                           equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1552,7 +1667,7 @@ datasetDate = (datetime.today() + relativedelta(months = 1)).strftime('%b-%Y')
 #Create datasetDate column to track time. (Optional if desired to track, required if previously used)
 df['DatasetDate'] = datasetDate
 
-df = write_to_existing_kdp(df, dataset_id, workspace_id, jwt, batch_size, starting_record_id,
+df = write_to_existing_kdp(df, dataset_id, batch_size, starting_record_id,
                       ingestCheck = True, equivalenceCheck = True, similarCheck = True, returnNewData = True)`);
 
 Jupyter.notebook.
@@ -1573,7 +1688,7 @@ set_text(`df = pd.read_csv(os.getenv('HOME') + '/examples/titanic.csv')
 df = standardize_titanic(df)
 
 #Write to KDP
-dataset_id = write_to_new_kdp(df, 'titanicReplaceTest', workspace_id, jwt, batch_size, starting_record_id,
+dataset_id = write_to_new_kdp(df, 'titanicReplaceTest', batch_size, starting_record_id,
                           equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1597,7 +1712,7 @@ set_text(`### Now could potentially compare the current version with the new ver
 
 Jupyter.notebook.
 insert_cell_above('code', (LAST_DEFAULT_CELL+41)).
-set_text(`dataset_id = overwrite_to_kdp(df, dataset_id, workspace_id, jwt, batch_size, starting_record_id,
+set_text(`dataset_id = overwrite_to_kdp(df, dataset_id, batch_size, starting_record_id,
                               equivalenceCheck = True)`);
 
 Jupyter.notebook.
@@ -1616,10 +1731,14 @@ set_text(`### Since the dataset_id changes with every overwrite in the current i
 
     if (this.showFunctionCell) {
 
+      turnOffButton();
+
       this.buttonFunctionCell[1].style.display = 'none';
       this.showFunctionCell = false;
 
     } else {
+
+      turnOnButton();
 
       this.buttonFunctionCell[1].style.display = 'flex';
       this.showFunctionCell = true;
@@ -1633,7 +1752,7 @@ set_text(`### Since the dataset_id changes with every overwrite in the current i
   var functionsButton = function () {
       Jupyter.toolbar.add_buttons_group([
           Jupyter.keyboard_manager.actions.register ({
-              'help': 'Show/hide hidden functions at the top of the notebook',
+              'help': 'Show/hide helper functions',
               'icon' : 'fas fa-assistive-listening-systems',
               'handler': showHideFunctions
           }, 'show-hide-functions', 'test123')
@@ -1660,7 +1779,21 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
 };
 
+  var turnOffButton = function () {
+    buttonSound.src = "KDP4/TurnOff.wav";
+    buttonSound.loop = false;
+    buttonSound.play();
+  };
+
+  var turnOnButton = function () {
+    buttonSound.src = "KDP4/TurnOn.wav";
+    buttonSound.loop = false;
+    buttonSound.play();
+  };
+
   var readWriteFlowTutorialOff = function () {
+
+      turnOffButton();
 
       readWriteFlowTutorialSelection = 'Off';
       document.getElementById('readWriteTutorialOn').style.display = 'none';
@@ -1680,6 +1813,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
 
     var readWriteFlowTutorialOn = function () {
+        turnOnButton();
         readWriteFlowTutorialSelection = 'On';
         document.getElementById('readWriteTutorialOn').style.display = 'inline-block';
         document.getElementById('readWriteTutorialOff').style.display = 'none';
@@ -1730,7 +1864,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
   };
 
   var adjustSoundAlertOff = function () {
-
+      turnOffButton();
       soundAlertsSelection = 'Off';
 
       document.getElementById('soundOn').style.display = 'none';
@@ -1739,7 +1873,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
   };
 
   var adjustSoundAlertOn = function () {
-
+      turnOnButton();
       soundAlertsSelection = 'On';
 
       document.getElementById('soundOn').style.display = 'inline-block';
@@ -1751,7 +1885,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
       Jupyter.toolbar.add_buttons_group([
           Jupyter.keyboard_manager.actions.register ({
-              'help': 'Turn sound alert off',
+              'help': 'Disable Sound Alert',
               'icon' : "fas fa-volume-up",
               'handler': adjustSoundAlertOff
           }, 'sound alert options', 'On')
@@ -1762,45 +1896,16 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
     Jupyter.toolbar.add_buttons_group([
         Jupyter.keyboard_manager.actions.register ({
-            'help': 'Turn sound alert on',
+            'help': 'Enable Sound Alert',
             'icon' : "fas fa-volume-off",
             'handler': adjustSoundAlertOn
         }, 'sound alert options', 'Off')
     ], 'soundOff')
   };
 
-
-  var stopAlarm = function () {
-
-    if (this.stopAlarm) {
-
-      this.stopAlarm = false;
-      alarmSounding = false;
-      music.pause();
-      music.currentTime = 0;
-
-    } else {
-
-      this.stopAlarm = true;
-      alarmSounding = false;
-      music.pause();
-      music.currentTime = 0;
-
-    }
-  };
-
-  var stopAlarmButton = function () {
-      Jupyter.toolbar.add_buttons_group([
-          Jupyter.keyboard_manager.actions.register ({
-              'help': 'Stop Alarm Sound',
-              'icon' : "fas fa-headphones",
-              'handler': stopAlarm
-          }, 'Stop Alarm Sound', 'Stop')
-      ])
-  };
-
     var enableTextAlertsOff = function () {
 
+        turnOffButton();
         textAlertsSelection = 'Off';
 
         document.getElementById('textOn').style.display = 'none';
@@ -1810,6 +1915,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
 
       var enableTextAlertsOn = function () {
+          turnOnButton();
           textAlertsSelection = 'On';
 
           document.getElementById('textOn').style.display = 'inline-block';
@@ -1819,7 +1925,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
     var enableTextAlertButtonOff = function () {
         Jupyter.toolbar.add_buttons_group([
             Jupyter.keyboard_manager.actions.register ({
-                'help': 'Enable Text Alert on/off',
+                'help': 'Disable Text Alert',
                 'icon' : 'fas fa-comments',
                 'handler': enableTextAlertsOff
             }, 'Enable Text Alerts', 'On')
@@ -1829,7 +1935,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
     var enableTextAlertButtonOn = function () {
         Jupyter.toolbar.add_buttons_group([
             Jupyter.keyboard_manager.actions.register ({
-                'help': 'Enable Text Alert on/off',
+                'help': 'Enable Text Alert',
                 'icon' : 'fas fa-comment',
                 'handler': enableTextAlertsOn
             }, 'Enable Text Alerts', 'Off')
@@ -1838,27 +1944,36 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
 
 
     var enableEmailAlertsOff = function () {
-
+        turnOffButton();
         emailAlertsSelection = 'Off';
 
         document.getElementById('emailOn').style.display = 'none';
         document.getElementById('emailOff').style.display = 'inline-block';
+        buttonSound.src = "KDP4/TurnOff.wav";
+        buttonSound.loop = false;
+        buttonSound.play();
 
       };
 
 
       var enableEmailAlertsOn = function () {
+          turnOnButton();
           emailAlertsSelection = 'On';
 
           document.getElementById('emailOn').style.display = 'inline-block';
           document.getElementById('emailOff').style.display = 'none';
+
+          buttonSound.src = "KDP4/TurnOn.wav";
+          buttonSound.loop = false;
+          buttonSound.play();
+
         };
 
 
         var enableEmailAlertButtonOff = function () {
             Jupyter.toolbar.add_buttons_group([
                 Jupyter.keyboard_manager.actions.register ({
-                    'help': 'Enable Email Alert on/off',
+                    'help': 'Disable Email Alert',
                     'icon' : 'fas fa-envelope-open',
                     'handler': enableEmailAlertsOff
                 }, 'Enable Email Alerts', 'On')
@@ -1868,7 +1983,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
         var enableEmailAlertButtonOn = function () {
             Jupyter.toolbar.add_buttons_group([
                 Jupyter.keyboard_manager.actions.register ({
-                    'help': 'Enable Email Alert on/off',
+                    'help': 'Enable Email Alert',
                     'icon' : 'fas fa-envelope',
                     'handler': enableEmailAlertsOn
                 }, 'Enable Email Alerts', 'textOff')
@@ -1882,6 +1997,7 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
       document.getElementById('textOn').style.display = 'none';
       document.getElementById('emailOn').style.display = 'none';
       document.getElementById('readWriteTutorialOn').style.display = 'none';
+
 
     }
 
@@ -1900,7 +2016,6 @@ Jupyter.notebook.delete_cells([(index_var[1]+1)]);
           readWriteFlowTutorialButtonOn();
           adjustSoundAlertButtonOff();
           adjustSoundAlertButtonOn();
-          stopAlarmButton();
           enableTextAlertButtonOff();
           enableTextAlertButtonOn();
           enableEmailAlertButtonOff();

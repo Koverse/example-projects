@@ -1,3 +1,5 @@
+# Note: This repository is licensed by MIT
+
 # Jupyterhub with Docker Compose
 
 This repository contains a docker-compose definition for launching Jupyterhub, generating a custom docker image that allows users to install Python packages, install spark and dependencies, edit user/group permissions, etc. With JupyterHub you can create a multi-user Hub that spawns, manages, and proxies multiple instances of the single-user Jupyter notebook server. Upon starting the container, an Oauth flow to connect to KDP4 is initiated and the logged in user's access token is stored as an environment variable. Within Jupyter Notebooks, this token can be retrieved via python's os module using this method: ```os.getenv('ACCESS_TOKEN')```.

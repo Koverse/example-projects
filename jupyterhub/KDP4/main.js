@@ -1093,7 +1093,7 @@ textnow_password = os.getenv('TEXTNOW_PASSWORD')
 textnow_email = os.getenv('TEXTNOW_EMAIL')
 
 path_to_ca_file = ''
-host = 'https://api.staging.koverse.com'
+host = 'https://api.app.koverse.com'
 
 kdp_conn = KdpConn(path_to_ca_file=path_to_ca_file, host=host)
 
@@ -1195,7 +1195,7 @@ def overwrite_to_kdp(data, dataset_id, batch_size, starting_record_id, equivalen
 
     #API Config
     configuration = kdp_api.Configuration(
-        host='https://api.staging.koverse.com'
+        host='https://api.app.koverse.com'
     )
     configuration.access_token = jwt
 
@@ -1313,7 +1313,7 @@ def write_to_new_kdp(data, new_dataset_name, batch_size, starting_record_id, equ
 
         #API Config
         configuration = kdp_api.Configuration(
-            host='https://api.staging.koverse.com'
+            host='https://api.app.koverse.com'
         )
         configuration.access_token = jwt
 
@@ -1415,7 +1415,7 @@ def write_to_existing_kdp(data, target_dataset_id, batch_size, starting_record_i
 
         #API Config
         configuration = kdp_api.Configuration(
-            host='https://api.staging.koverse.com'
+            host='https://api.app.koverse.com'
         )
         configuration.access_token = jwt
 

@@ -48,9 +48,9 @@ createApplication(({ app, callbackUrl }) => {
       secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
     },
     auth: {
-      tokenHost: 'https://api.dev.koverse.com',
+      tokenHost: 'https://api.app.koverse.com',
       tokenPath: '/oauth2/token',
-	    authorizeHost: 'https://api.dev.koverse.com',
+	    authorizeHost: 'https://api.app.koverse.com',
       authorizePath: '/oauth2/auth',
     }
   });

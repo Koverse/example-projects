@@ -29,7 +29,7 @@ const Homepage = () => {
         const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
 
         console.log(accessToken)
-        axios.post('https://api.dev.koverse.com/query', 
+        axios.post('https://api.app.koverse.com/query', 
         {
                 "datasetId": "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
                 "expression": "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
@@ -60,8 +60,8 @@ const Homepage = () => {
         //"/pokemon?limit=1000"
         console.log(accessToken)
         //axios.get("http://localhost:5000/callback", {params: {code: code}})
-        //axios.post('https://api.dev.koverse.com/write?datasetId=8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4', 
-        axios.post('https://api.dev.koverse.com/write?datasetId=', {params: {datasetId: "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4"}}, 
+        //axios.post('https://api.app.koverse.com/write?datasetId=8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4', 
+        axios.post('https://api.app.koverse.com/write?datasetId=', {params: {datasetId: "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4"}}, 
         {
             "additionalProp1": {
                 "Colour": "M",
@@ -104,7 +104,7 @@ const Homepage = () => {
 
     useEffect(() => {
         // get user login credentials
-        axios.post('https://api.dev.koverse.com/authentication', 
+        axios.post('https://api.app.koverse.com/authentication', 
         {
                 "strategy": "jwt",
                 "accessToken": localStorage.getItem('token')

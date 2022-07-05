@@ -37,7 +37,7 @@ Table
 
 Example url:
 
-https://api.staging.koverse.com/query
+https://api.app.koverse.com/query
 
 Click on the “Http Method, Query param, Headers” button
 

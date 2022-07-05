@@ -312,7 +312,7 @@ jwt_expire_time = os.getenv('ACCESS_TOKEN_EXPIRE')
 
 bearer_token = 'Bearer ' + jwt
 headers = {'Authorization': bearer_token}
-user_request = requests.get('https://api.staging.koverse.com/me', headers=headers)
+user_request = requests.get('https://api.app.koverse.com/me', headers=headers)
 user = json.loads(user_request.headers['Koverse-User'])
 
 workspace_id = user['workspaceId']
@@ -322,7 +322,7 @@ lastName = user['lastName']
 fullName = firstName + ' ' + lastName
 
 path_to_ca_file = ''
-host = 'https://api.staging.koverse.com'
+host = 'https://api.app.koverse.com'
 
 kdp_conn = KdpConn(path_to_ca_file=path_to_ca_file, host=host)
 
@@ -424,7 +424,7 @@ def overwrite_to_kdp(data, dataset_id, workspace_id, jwt, batch_size, starting_r
 
     #API Config
     configuration = kdp_api.Configuration(
-        host='https://api.staging.koverse.com'
+        host='https://api.app.koverse.com'
     )
     configuration.access_token = jwt
 
@@ -544,7 +544,7 @@ def write_to_new_kdp(data, new_dataset_name, workspace_id, jwt, batch_size, star
 
         #API Config
         configuration = kdp_api.Configuration(
-            host='https://api.staging.koverse.com'
+            host='https://api.app.koverse.com'
         )
         configuration.access_token = jwt
 
@@ -648,7 +648,7 @@ def write_to_existing_kdp(data, target_dataset_id, workspace_id, jwt, batch_size
 
         #API Config
         configuration = kdp_api.Configuration(
-            host='https://api.staging.koverse.com'
+            host='https://api.app.koverse.com'
         )
         configuration.access_token = jwt
 

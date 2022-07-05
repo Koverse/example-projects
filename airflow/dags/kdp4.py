@@ -22,7 +22,7 @@ def get_json():
     return json.dumps(data)
 
 def write_to_kdp4(jsonData, datasetId, token):
-    url = 'https://api.dev.koverse.com/write/' + datasetId
+    url = 'https://api.app.koverse.com/write/' + datasetId
     authValue = 'Bearer ' + token
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}

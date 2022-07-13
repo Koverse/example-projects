@@ -1,6 +1,7 @@
 KDP4 Grafana
 
 * Build userinfo docker container: `cd user-info-server && docker build -t koverse/userinfo . `
+* Start docker compose `docker-compose up`
 
 Login
 

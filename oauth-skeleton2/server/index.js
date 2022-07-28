@@ -37,10 +37,9 @@ const createApplication = (cb) => {
 
 createApplication(({ app, callbackUrl }) => {
 
-  //let token = '';
-
   const client = new AuthorizationCode({
     client: {
+      // get id and secret from creating a KDP4 Application
       id: '66e63d65b6d0e150e6d02776e734188b0767fec5591005332b9e4a920b8371b7',
       secret: '40e116dcf9a8fa0fa9b6719d9d313293939b7515cfab70287819ae3efd9607ec',
     },
@@ -58,7 +57,7 @@ createApplication(({ app, callbackUrl }) => {
     state: '/auth/success'
   });
 
-  // Initial page redirecting to Github
+  // Initial page redirecting
   app.get('/auth', (req, res) => {
     console.log("/auth was called");
     console.log(authorizationUri);
@@ -72,13 +71,8 @@ createApplication(({ app, callbackUrl }) => {
       code,
 			redirect_uri: callbackUrl,
     };
-    console.log(options)
-
-		console.log('CODE', code)
     try {
       const accessToken = await client.getToken(options);
-
-      console.log('The resulting token: ', accessToken.token);
       loggedInState = true;
 
       return res.status(200).json(accessToken).send();
@@ -89,6 +83,7 @@ createApplication(({ app, callbackUrl }) => {
     }
   });
 
+  // update users loggedIn state across entire app
   app.get('/logout', async (req, res) => {
     loggedInState = false;
     res.send(loggedInState)
@@ -99,15 +94,21 @@ createApplication(({ app, callbackUrl }) => {
     res.json(loggedInState)
   })
 
+  // get data from KDP4 dataset
   app.get("/getData3", (req,res) => {
     console.log("entered /getData3")
     const { token } = req.query;
+    // gets data from the last 5 minutes every 10 seconds
     let now = moment().subtract("5", "minutes").format("X")
     console.log("current time: " + now)
     axios.post('https://api.staging.koverse.com/query', 
     {
+      // below fields can be changed to app's needs
       "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
+      //"datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
+      //"datasetId": "700c4273-8513-4803-9f53-13b350492772",
       "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
+      //"expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > " + now,
       "limit": 200,
       "offset": 0
     }, 
@@ -126,6 +127,7 @@ createApplication(({ app, callbackUrl }) => {
         .catch(err => {
           console.log(err)
             console.log("DATA NOT RECEIVED")
+            // check if error.message == "jwt expired" so that user can be logged out
         })
 
   })
@@ -135,6 +137,7 @@ createApplication(({ app, callbackUrl }) => {
     const { token } = req.query;
     console.log(token)
 
+    // returns user's credentials using accessToken received after KDP4 login
     axios.post('https://api.staging.koverse.com/authentication', 
         {
           "strategy": "jwt",
@@ -148,6 +151,7 @@ createApplication(({ app, callbackUrl }) => {
         })
         .catch(err => {
             console.log("CREDENTIALS NOT RECEIVED")
+            res.send(err)
         })
 
   })

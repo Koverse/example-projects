@@ -6,7 +6,7 @@ function AuthContextProvider(props) {
     const [loggedIn, setLoggedIn] = useState(false);
 
     async function getLoggedIn() {
-        // get loggedIn state as a response from server
+        // get users loggedIn state as a response from server
 
         if (localStorage.getItem("token") !== null)
         {

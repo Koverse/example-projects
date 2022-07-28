@@ -16,7 +16,7 @@ TOKEN = Variable.get("kdp_access_token")
 def write_to_kdp4(jsonData, datasetId, token):
     url = 'https://api.staging.koverse.com/write/' + datasetId
     #authValue = 'Bearer ' + token
-    authValue = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImluZGlyYWF2ZW5kYW5vQGtvdmVyc2UuY29tIiwiaWF0IjoxNjUxNTk0Mzg1LCJleHAiOjE2NTE2ODA3ODUsImlzcyI6ImtvdmVyc2UiLCJzdWIiOiI3NGFlZGFjOS1iMTJiLTQyMzItODg5Mi03OTY3NTY3ZGEwNjUiLCJqdGkiOiI3NjE1M2VhNy1jYmFmLTRjMGItOTc1ZS1hOTVjZGUzMjkzYmYifQ.8P4v-VIM_X5BsGExtuYszbLbdFpqN4nkJ29UUIZM_v4'
+    authValue = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6ImluZGlyYWF2ZW5kYW5vQGtvdmVyc2UuY29tIiwiaWF0IjoxNjUyMzgxNzQyLCJleHAiOjE2NTI0NjgxNDIsImlzcyI6ImtvdmVyc2UiLCJzdWIiOiI3NGFlZGFjOS1iMTJiLTQyMzItODg5Mi03OTY3NTY3ZGEwNjUiLCJqdGkiOiJhNTk1ZTkwNi1hYTI5LTQwZmItOWFmNi01NDg2MTRlZDVlMDMifQ.1xuNXsA-6oyySWG91XfqH3QcWU9XgRVSJ_rlukBH6rM'
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}
     

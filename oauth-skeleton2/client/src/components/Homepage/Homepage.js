@@ -14,21 +14,22 @@ import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 const Homepage = () => {
 
     const {loggedIn} = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const [adsbData, setAdsbData] = useState([]);
     const [dataTimer, setDataTimer] = useState({});
     const [lastFetchTime, setLastFetchTime] = useState(
         moment().subtract("5", "minutes").format("YYYY-MM-DD HH:mm:ss")
       );
-    const REFRESH_TIME = 25000;
-    //const REFRESH_TIME = 10000;
+    //const REFRESH_TIME = 25000;
+    const REFRESH_TIME = 10000;
 
     const [viewport, setViewport] = useState({
-      longitude: -104.991531,
-      latitude: 39.742043,
+      longitude: -104.991531, // -77.0369
+      latitude: 39.742043, // 38.9072
       width: "100%",
       height: "100%",
-      zoom: 8,
+      zoom: 10,
       bearing: 0,
       pitch: 0
   })
@@ -43,10 +44,21 @@ const Homepage = () => {
   useEffect(() => {
     setAdsbData([]);
     console.log(lastFetchTime);
-    console.log(moment().subtract("20", "minutes").utc().format("YYYY-MM-DDTHH:mm:ss[Z]"));
-    if (localStorage.getItem("user") === null)
+    //console.log(moment().subtract("20", "minutes").utc().format("YYYY-MM-DDTHH:mm:ss[Z]"));
+    if (localStorage.getItem("token") === null)
+    {
+        console.log("token == null")
+        // navigate to homepage because either user is logged out OR token has expired
+        navigate("/");
+        window.location.reload();
+    }
+    else if (localStorage.getItem("user") === null)
     {
         console.log("do not call postData")
+        dataTimer.nextTimeoutId = setTimeout(
+          () => setDataTimer({ id: dataTimer.nextTimeoutId }),
+          1000
+        );
     }
     else if (localStorage.getItem("user") !== null)
     {
@@ -62,6 +74,25 @@ const Homepage = () => {
           console.log(res.data.records)
           let preFlightData = res.data.records.map((record, index) => {
 
+              /////////// FOR ADSB DATA ///////////
+              // return {
+              //   coordinates: [
+              //     Number(record.lon),
+              //     Number(record.lat),
+              //     Number(record.alt_baro),
+              //   ],
+              //   callsign: record.flight,
+              //   track: record.track,
+              //   hex: record.hex,
+              //   type: "Plane",
+              //   details: record.flight,
+              //   category: record.category,
+              //   nav_heading: record.nav_heading,
+              //   squawk: record.squawk,
+              // };
+
+
+              /////////// FOR RTD DATA ///////////
               return {
                 coordinates: [
                   Number(record.longitude),
@@ -82,6 +113,14 @@ const Homepage = () => {
 
           const dataAsObj = {};
             let sortedData = preFlightData;
+
+            //////// FOR ADSB DATA ////////////
+            // sortedData.forEach((entry) => (dataAsObj[entry["hex"]] = entry));
+            // sortedData = preFlightData.map(
+            //   (entry) => dataAsObj[entry["hex"]] || entry
+            // );
+
+            //////// FOR RTD DATA ////////////
             sortedData.forEach((entry) => (dataAsObj[entry["index"]] = entry));
             sortedData = preFlightData.map(
               (entry) => dataAsObj[entry["index"]] || entry
@@ -92,10 +131,11 @@ const Homepage = () => {
 
   
         })
-      .catch(err => {
-          console.log("DID NOT receive data: ")
-          console.log(err)
-      })  
+      // .catch(err => {
+      //     // check if error is that token has expired -> if true, navigate back to login page
+      //     console.log("DID NOT receive data: ")
+      //     console.log(err)
+      // })  
       .finally(() => {
         console.log("set data timer")
         dataTimer.nextTimeoutId = setTimeout(
@@ -107,6 +147,7 @@ const Homepage = () => {
 
       
     return () => {
+      console.log("reached return")
       clearTimeout(dataTimer.nextTimeoutId);
       dataTimer.id = null;
     };
@@ -135,7 +176,7 @@ const Homepage = () => {
                         >
                             {console.log(adsbData)}
                     {adsbData != null && adsbData.map((data, i) => (
-                      <Marker  key={`marker-${i}`} longitude={data.coordinates[0]} latitude={data.coordinates[1]} anchor="bottom" >
+                      <Marker  key={`marker-${i}`} longitude={data.coordinates[0]} latitude={data.coordinates[1]} anchor="bottom">
                         {console.log("adsbData length: " + adsbData.length)}
                         <img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png" />
                       </Marker>

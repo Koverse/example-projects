@@ -24,7 +24,6 @@ function App() {
         }
         
         <Route path='/auth/success' element={<Homepage/>} />
-        {/* <Route path='/auth/success' element={<Map/>} /> */}
       
         </Routes>
       </Router>

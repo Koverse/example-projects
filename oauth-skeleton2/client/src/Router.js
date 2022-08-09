@@ -7,22 +7,28 @@ import AuthContext from "./components/Auth/AuthContext";
 
 function App() {
 
-   const {loggedIn} = useContext(AuthContext);
-   console.log("LoggedInState: ")
-   console.log(loggedIn)
+  // use this context file to access loggedIn state globally
+  const {loggedIn} = useContext(AuthContext);
+
+  // check logged in state
+  console.log("LoggedInState: ")
+  console.log(loggedIn)
 
   return (
+      // create path routes for all the seperate pages to be accessed depending on loggedIn state
       <Router>
         <Routes>
           {loggedIn === false &&
           <>
+          {/* initial page seen when accessing url */}
           <Route path='/' element={<LoginPage />} />
+          {/* middle-man page used to  */}
           <Route path='/auth/koverse' element={<AuthCheck/>} />
           </>
           
-        }
-        
-        <Route path='/auth/success' element={<Homepage/>} />
+          }
+          {/* Homepage only accessible if the user is logged in - this is where we can successfully make API calls*/}
+          <Route path='/auth/success' element={<Homepage/>} />
       
         </Routes>
       </Router>

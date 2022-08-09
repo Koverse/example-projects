@@ -99,7 +99,7 @@
           "root_selector": "records",
           "source": "url",
           "type": "json",
-          "url": "https://api.app.koverse.com/query",
+          "url": "https://api.staging.koverse.com/query",
           "url_options": {
             "data": "{\n      \"datasetId\": \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\",\n      \"expression\": \"SELECT * FROM \\\"c83a25f3-26ff-487c-a5cf-b9ba6301d518\\\" where \\\"flight_aware_ts\\\" > ${__from:date:seconds}\",\n      \"limit\": 2000,\n      \"offset\": 0\n}",
             "headers": [

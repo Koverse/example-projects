@@ -13,10 +13,12 @@ const Homepage = () => {
     const {loggedIn} = useContext(AuthContext);
 
     const logout = () => {
-        console.log("Remove token and log out");
+        // TRAINING: KDP4 Authentication 
+        // Remove token and user from local storage so user is no longer recognized as logged in
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        //call logout endpoint
+
+        //call logout endpoint to update backend login status
         const loggedInState = axios.get("http://localhost:5000/logout");
         console.log("loggedInState: " + loggedInState)
 
@@ -24,33 +26,83 @@ const Homepage = () => {
         window.location.reload();
     }
 
+    useEffect(() => {
+        // get user login credentials
+        const accessToken = localStorage.getItem("token");
+        console.log(accessToken);
+        axios
+        .get("http://localhost:5000/getCredentials", {
+            params: { token: accessToken },
+        })
+        .then((response) => {
+            // RECEIVED CREDENTIALS
+            // save user in local storage in order to refer to access token
+            localStorage.setItem("user", JSON.stringify(response.data))
+            setUserDisplayName(response.data.user.displayName);        
+            setUserEmail(response.data.user.email); 
+        })
+        .catch((err) => {
+            // UNABLE TO GET USER CREDENTIALS
+            logout();
+            navigate("/");
+            window.location.reload();
+
+        });
+    }, [])
+
+    // TRAINING: KDP4 Read Records from Datasets
     const getData = () => {
-        console.log("calling /query endpoint");
+
+        // Get JWT access token from local storage
         const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
 
-        console.log(accessToken)
-        axios.post('https://api.app.koverse.com/query', 
+        // TRAINING TODO: Replace Base API URL with URL of KDP4 workspace you created
+        //  https://${BASE_URL}/query
+        axios.post('https://api.staging.koverse.com/query',
         {
-                "datasetId": "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
-                "expression": "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
-                "limit": 0,
-                "offset": 0
+            // TRAINING TODO: Replace 'datasetId' value with dataset ID of the dataset you want to reference and read data from
+            "datasetId": "8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4",
+            // TRAINING TODO: For the 'expression' key-value pair, type a SQL statement that selects and returns data for a specific dataset, 
+            // where one of the columns equals a specific value
+            // Try different SQL statements to get familiar with how SQL is used to reference the data you need from KDP4 datasets
+            "expression": "SELECT * FROM \"8a8901b3-2b08-45ae-94b7-dff1cbb8d0b4\"",
+            "limit": 0,
+            "offset": 0
         }, 
         {
             headers: {
               "Authorization": "Bearer " + accessToken
             }
-        }
-        )
+        })
         .then(response => {
-            // store response token in local storage
-            console.log("Wildlife data received");
+            // SUCCESSFULLY QUERIED AND RECEIVED DESIRED DATA
             console.log(response);
         })
         .catch(err => {
-            console.log("DATA NOT RECEIVED")
+            // ERROR QUERYING/READING DATA
+            console.log(err)
         })
 
+    }
+
+    // TRAINING: KDP4 Write Records to Datasets - Done through endpoint local server to avoid CORS issues
+    const writeData = () => {
+        // Get JWT access token from local storage
+        const accessToken = JSON.parse(localStorage.getItem("user")).accessToken;
+
+        // TRAINING TODO: Replace 'data_to_write' with data you want added to a KDP4 dataset, does not have to be a string
+        const data_to_write = "new data";
+
+        // call endpoint defined in local node server to write desired data to KDP4 dataset
+        axios.post("http://localhost:5000/writeData", data_to_write,
+        {params: { token: accessToken }})
+        .then((response) => {
+            // Successfully wrote text to kdp4
+            console.log(response)
+        })
+        .catch((error) => {
+            console.log(error)
+        });
     }
 
     /*const writeData = () => {
@@ -101,28 +153,6 @@ const Homepage = () => {
         })
     }*/
   
-
-    useEffect(() => {
-        // get user login credentials
-        axios.post('https://api.app.koverse.com/authentication', 
-        {
-                "strategy": "jwt",
-                "accessToken": localStorage.getItem('token')
-        })
-        .then(response => {
-            // store response token in local storage
-            console.log(response);
-            localStorage.setItem("user", JSON.stringify(response.data))
-            setUserDisplayName(response.data.user.displayName);        
-            setUserEmail(response.data.user.email); 
-        })
-        .catch(err => {
-            console.log("Unable to get user credentials")
-            logout();
-            navigate("/");
-            window.location.reload();
-        })
-    }, [])
 
     return (
         <div>

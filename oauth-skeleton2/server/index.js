@@ -5,14 +5,12 @@ const app = require('express')();
 var cookieParser = require('cookie-parser');
 var cors = require('cors')
 const axios = require('axios');
-const jwt = require("jsonwebtoken")
 
 const { AuthorizationCode } = require('simple-oauth2');
 
 const port = 5000;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-// /public or /build?
 app.use(express.static(__dirname + '/client/public'))
 app.use(cookieParser());
 app.use(cors());
@@ -20,7 +18,6 @@ app.use(cors());
 let loggedInState = false;
 
 const createApplication = (cb) => {
-  //const callbackUrl = 'http://localhost:5000/callback';
   const callbackUrl = 'http://localhost:3000/auth/koverse'
 
   app.listen(port, (err) => {
@@ -35,22 +32,20 @@ const createApplication = (cb) => {
   });
 };
 
-
+// TRAINING: Sets up Oauth2 Authentication Settings for authentication through KDP4 to work
 createApplication(({ app, callbackUrl }) => {
-
-  //let token = '';
 
   const client = new AuthorizationCode({
     client: {
-      id: '2269be05b435ced00fa363556c6868a77f4c98f9235a811694c670dc92b18f75',
-      //id: '444a0f8a0c2dabfdb37c3f54afda14390eb7f1eef09aa78e0fd5f6c7576c324f',
-      //secret: '3964abcb8ad7cda385696a7c4bd7edf8a25804bb9d89c54546f051694cb30400',
-      secret: 'fb46d9c63951100aaea858e7d2cc4676968714e646266d8adf4d32d0199d3385'
+      // TRAINING TODO: Replace id and secret with values received after creating KDP4 application
+      id: '66e63d65b6d0e150e6d02776e734188b0767fec5591005332b9e4a920b8371b7',
+      secret: '40e116dcf9a8fa0fa9b6719d9d313293939b7515cfab70287819ae3efd9607ec'
     },
     auth: {
-      tokenHost: 'https://api.app.koverse.com',
+      // TRAINING TODO: Replace token host and authorize host with the base url of the workspace you are using
+      tokenHost: 'https://api.staging.koverse.com',
       tokenPath: '/oauth2/token',
-	    authorizeHost: 'https://api.app.koverse.com',
+	    authorizeHost: 'https://api.staging.koverse.com',
       authorizePath: '/oauth2/auth',
     }
   });
@@ -58,15 +53,11 @@ createApplication(({ app, callbackUrl }) => {
   // Authorization uri definition
   const authorizationUri = client.authorizeURL({
     redirect_uri: callbackUrl,
-    // scope: 'notifications',
-    //state: '3(#0/!~56e' // auth/koverse?
     state: '/auth/success'
   });
 
-  // Initial page redirecting to Github
+  // Initial page redirecting to Homepage after successfully login in
   app.get('/auth', (req, res) => {
-    console.log("/auth was called");
-    console.log(authorizationUri);
     res.redirect(authorizationUri);
   });
 
@@ -77,18 +68,15 @@ createApplication(({ app, callbackUrl }) => {
       code,
 			redirect_uri: callbackUrl,
     };
-    console.log(options)
 
-		console.log('CODE', code)
     try {
       const accessToken = await client.getToken(options);
-
       console.log('The resulting token: ', accessToken.token);
       loggedInState = true;
 
       return res.status(200).json(accessToken).send();
-      // return res.redirect('http://localhost:3000/auth/success') 
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Access Token Error or unable to get user credentials', error);
       loggedInState = false;
       return res.status(500).json('Authentication failed');    
@@ -104,4 +92,58 @@ createApplication(({ app, callbackUrl }) => {
     console.log(loggedInState)
     res.json(loggedInState)
   })
+
+  app.get("/getCredentials", (req, res) => {
+    const { token } = req.query;
+
+    // returns user's credentials using accessToken received after KDP4 login
+    axios.post('https://api.staging.koverse.com/authentication', 
+        {
+          "strategy": "jwt",
+          "accessToken": token
+
+        })
+        .then(response => {
+            // store response token in local storage
+            console.log("Credentials received");
+            res.send(response.data)
+        })
+        .catch(err => {
+            console.log("CREDENTIALS NOT RECEIVED")
+            res.send(err)
+        })
+  })
+
+  app.get("/writeData", (req, res) => {
+
+    // saves access token parameter  as 'token' so users specific JWT token can be used to make the Authorizes '/write' call
+    const { token } = req.query;
+
+    // TRAINING TODO: Replace with corresponding values
+    // https://${BASE_API_URL}/write/${DATASET_ID_WRITE_TO}
+    axios.post("https://api.staging.koverse.com/write/d5c118f9-9cf6-42b1-98e4-1ed64d34c5ec", 
+    [
+      // TRAINING TODO: Modify the below JSON object you will be writing to as a SINGLE record to a KDP4 dataset. 
+      // The key-value pairs are considered column-rowValue pairs in KDP4 dataset. 
+      {
+        "column1": "value1",
+        "column2": "value2",
+        "column3": "value3",
+      }
+    ],
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      }  
+    }).then((response) => {
+      console.log(response)
+      //Successfully wrote text to kdp4
+    })
+    .catch((error) => {
+      console.log(error)
+    });
+    
+  })
+
 });

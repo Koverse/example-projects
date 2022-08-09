@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
 
 app.get('/userinfo', async (req, res) => {
 
-    const response = await fetch('https://api.app.koverse.com/me', {
+    const response = await fetch('https://api.staging.koverse.com/me', {
         headers: {'Authorization': req.headers.authorization},
     });
     

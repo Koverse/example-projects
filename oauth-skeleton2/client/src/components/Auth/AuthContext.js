@@ -1,5 +1,4 @@
 import React, { useEffect, useState, createContext } from 'react'
-import axios from 'axios'
 
 const AuthContext = createContext();
 
@@ -9,11 +8,11 @@ function AuthContextProvider(props) {
     async function getLoggedIn() {
         // get loggedIn state as a response from server
 
-        if (localStorage.getItem("token") !== null)
+        if (localStorage.getItem("user") !== null)
         {
             setLoggedIn(true);
         }
-        else if (localStorage.getItem("token") === null) {
+        else if (localStorage.getItem("user") === null) {
             setLoggedIn(false);
         }
 

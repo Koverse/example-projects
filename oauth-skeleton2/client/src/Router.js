@@ -20,7 +20,7 @@ function App() {
           <Route path='/auth/koverse' element={<AuthCheck/>} />
           </>
           
-        }
+          }
         
         <Route path='/auth/success' element={<Homepage/>} />
       

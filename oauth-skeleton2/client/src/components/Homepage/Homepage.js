@@ -65,7 +65,7 @@ const Homepage = () => {
       console.log("Call postData")
       const accessToken = JSON.parse(localStorage.getItem("user")).accessToken
   
-      axios.get('http://localhost:5000/getData3', {params: {token: accessToken}})
+      axios.get('http://localhost:3001/getData3', {params: {token: accessToken}})
       .then(res => 
         {
           console.log("received data: ")

@@ -37,7 +37,7 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     //call logout endpoint
-    const loggedInState = axios.get("http://localhost:5000/logout");
+    const loggedInState = axios.get("http://localhost:3001/logout");
     console.log("loggedInState: " + loggedInState)
 
     navigate("/");
@@ -64,7 +64,7 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
 
     const accessToken = localStorage.getItem("token")
     console.log(accessToken)
-    axios.get('http://localhost:5000/getCred', 
+    axios.get('http://localhost:3001/getCred', 
     {params: {token: accessToken}})
     .then(res => 
       {

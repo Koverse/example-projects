@@ -19,7 +19,7 @@ const AuthCheck = () => {
       useEffect(() => {
 
         // can only be called once immediately from KDP redirect since that is the only way params can be passed
-        axios.get("http://localhost:5000/callback", {params: {code: code}})
+        axios.get("http://localhost:3001/callback", {params: {code: code}})
         .then(res => 
         {
             console.log("Calling callback function, token: ")

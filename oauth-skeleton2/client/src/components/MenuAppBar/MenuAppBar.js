@@ -11,7 +11,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-import AuthContext from "../Auth/AuthContext";
 
 const styles = makeStyles((theme) => ({
   root: {
@@ -28,16 +27,13 @@ const styles = makeStyles((theme) => ({
 const MenuAppBar = ({ user, toggleNavDrawer }) => {
 
   const navigate = useNavigate();    
-  const {loggedIn} = useContext(AuthContext);
-  const [userEmail, setUserEmail] = useState('');
 
-  
   const logout = () => {
     console.log("Remove token and log out");
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     //call logout endpoint
-    const loggedInState = axios.get("http://localhost:3001/logout");
+    const loggedInState = axios.get("/logout");
     console.log("loggedInState: " + loggedInState)
 
     navigate("/");
@@ -58,38 +54,11 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
     handleClose();
   };
 
-  useEffect(() => {
-    // get user login credentials
-    console.log("test")
-
-    const accessToken = localStorage.getItem("token")
-    console.log(accessToken)
-    axios.get('http://localhost:3001/getCred', 
-    {params: {token: accessToken}})
-    .then(res => 
-      {
-        console.log("received credentials: ")
-        console.log(res)
-        // save user in local storage in order to refer to access token
-        localStorage.setItem("user", JSON.stringify(res.data))
-        // store username and email
-        setUserEmail(res.data.user.email);
-
-      })
-    .catch(err => {
-        console.log("ttest2")
-        console.log(err)
-        console.log("Unable to get user credentials")
-        logout(); // reactivate once authentication is working again
-    })
-   
-  }, [])
-
   return (
     <AppBar position="fixed" className={classes.root} elevation={0}>
       <Toolbar>
         {/* disabled menu drawer toggle */}
-        {loggedIn && false && (
+        {user && false && (
           <IconButton
             edge="start"
             className={classes.roomRight}
@@ -103,10 +72,10 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
         <Typography color="inherit" variant="h6" className={classes.title}>
           OAuth Skeleton
         </Typography>
-        {loggedIn && (
+        {user && (
           <>
             <Typography variant="caption">
-                {userEmail}
+                {user.email}
             </Typography>
             <IconButton
               aria-label="Account of current user"

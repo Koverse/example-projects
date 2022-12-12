@@ -14,11 +14,12 @@ const styles = makeStyles((theme) => ({
   toolbar: { ...theme.mixins.toolbar },
 }));
 
-const Page = ({ children }) => {
+const Page = ({ children, user}) => {
   const classes = styles();
+  console.log(user)
   return (
     <>
-      <MenuAppBar/>
+      <MenuAppBar user={user}/>
       <div className={classes.root}>
       <div className={classes.toolbar} />
       <main className={classes.main}>{children}</main>
@@ -30,6 +31,7 @@ const Page = ({ children }) => {
 
 Page.propTypes = {
   children: PropTypes.node,
+  user: PropTypes.object
 };
 
 export default Page;

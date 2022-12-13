@@ -9,7 +9,7 @@ from airflow.decorators import dag, task
 
 CSV_PATH = '/opt/airflow/dags/files/employees.csv'
 
-DATASET_ID = ''
+DATASET_ID = Variable.get("kdp_employee_dataset")
 TOKEN = Variable.get("kdp_access_token")
 
 def get_json():

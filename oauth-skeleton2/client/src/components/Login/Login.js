@@ -9,8 +9,6 @@ import Button from "@material-ui/core/Button";
 const Login = () => {
 
    const {loggedIn} = useContext(AuthContext);
-   console.log("LoggedInState: ")
-   console.log(loggedIn)
    const navigate = useNavigate();
 
    // instead of checking this, check if login credentials can be received from backend api

@@ -51,19 +51,16 @@ const Homepage = () => {
       }
 
     useEffect(() => {
-        console.log("axios getCred called!");
-
-        axios.get("/getCredentials") // gets jwt and credentials
+        // stores jwt and gets credentials
+        axios.get("/getCredentials")
         .then((res) => {
             console.log("received credentials: ");
-            // save user in local storage in order to refer to access token
             localStorage.setItem("user", JSON.stringify(res.data));
-            // store username and email
+            // store username and email in local storage 
             setUserData(res.data)
         })
         .catch((err) => {
             console.log(err);
-            // remove user from local storage once again
             localStorage.removeItem("user");
             logout();
         });               
@@ -72,10 +69,9 @@ const Homepage = () => {
     useEffect(() => {
         setBusData([]);
         
-        // removed a local storage check on token that logged out if it did NOT exist
         if (localStorage.getItem("user") === null)
         {
-            console.log("start timer and do not call postData")
+            // start timer and do not call postData
             dataTimer.nextTimeoutId = setTimeout(
             () => setDataTimer({ id: dataTimer.nextTimeoutId }),
             1000
@@ -125,7 +121,6 @@ const Homepage = () => {
     
             })
         .finally(() => {
-            console.log("set data timer")
             dataTimer.nextTimeoutId = setTimeout(
             () => setDataTimer({ id: dataTimer.nextTimeoutId }),
             REFRESH_TIME
@@ -135,7 +130,6 @@ const Homepage = () => {
 
         
         return () => {
-        console.log("reached return")
         clearTimeout(dataTimer.nextTimeoutId);
         dataTimer.id = null;
         };

@@ -29,7 +29,6 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
   const navigate = useNavigate();    
 
   const logout = () => {
-    console.log("Remove token and log out");
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     //call logout endpoint

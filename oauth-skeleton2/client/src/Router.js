@@ -11,9 +11,7 @@ import AuthContext from "./components/Auth/AuthContext";
 function App() {
 
    const {loggedIn} = useContext(AuthContext);
-   console.log("LoggedInState: ")
-   console.log(loggedIn)
-
+   console.log("LoggedInState: " + loggedIn)
 
   return (
       <Router>

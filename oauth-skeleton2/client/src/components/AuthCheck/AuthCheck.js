@@ -23,6 +23,7 @@ const AuthCheck = () => {
         })
         .catch(err => 
         {
+          console.log(err)
             navigate("/auth/success");
             window.location.reload();
         });

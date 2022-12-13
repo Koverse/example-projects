@@ -13,7 +13,7 @@ async function getData(req, res, next) {
       axios.post('https://api.staging.koverse.com/query', 
       {
         "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
-        // "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
+        //"expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
         "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\"",
         "limit": 200,
         "offset": 0

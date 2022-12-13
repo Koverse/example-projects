@@ -2,28 +2,29 @@ import React, { useEffect, useState, useContext, useRef, useCallback} from "reac
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import Page from "../PageTemplate/index";
-
-import moment from "moment";
 import { InteractiveMap, Marker } from "react-map-gl";
 import DeckGL from "@deck.gl/react";
-
 import Geocoder from "react-map-gl-geocoder";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
-
-import {ScatterplotLayer} from "@deck.gl/layers"
+import {TextLayer, ScatterplotLayer} from "@deck.gl/layers"
 
 const Homepage = () => {
     const navigate = useNavigate();
+    // stores user information eg email, name, etc
     const [userData, setUserData] = useState({});
 
+    // Bus/RTD data
     const [busData, setBusData] = useState([]);
-    const [dataTimer, setDataTimer] = useState({});
-    const [lastFetchTime, setLastFetchTime] = useState(
-        moment().subtract("5", "minutes").format("YYYY-MM-DD HH:mm:ss")
-      );
-    const REFRESH_TIME = 10000;
+    const [busTimer, setbusTimer] = useState({});
     const [activeBus, setActiveBus] = useState({});
 
+    // ADSB Data
+
+    // Twitter Data
+
+    // Port Data
+
+    const REFRESH_TIME = 10000;
 
     const [viewport, setViewport] = useState({
       longitude: -104.991531, 
@@ -33,7 +34,8 @@ const Homepage = () => {
       zoom: 10,
       bearing: 0,
       pitch: 0
-  })
+    })
+
     const mapRef = useRef();
     const geocoderContainerRef = useRef();
 
@@ -46,6 +48,7 @@ const Homepage = () => {
         localStorage.removeItem('user');
         const loggedInState = axios.get("/logout");
         console.log("loggedInState: " + loggedInState)
+        // logout and return to login page
         navigate("/");
         window.location.reload();
       }
@@ -71,74 +74,106 @@ const Homepage = () => {
         
         if (localStorage.getItem("user") === null)
         {
-            // start timer and do not call postData
-            dataTimer.nextTimeoutId = setTimeout(
-            () => setDataTimer({ id: dataTimer.nextTimeoutId }),
+            // start timer
+            busTimer.nextTimeoutId = setTimeout(
+            () => setbusTimer({ id: busTimer.nextTimeoutId }),
             1000
             );
         }
         else if (localStorage.getItem("user") !== null)
         {
-        axios.get('/v1/data/getData')
-        .then(res => 
-            {
-            console.log(res.data.records)
-            // store returned data in specific format
-            let preBusData = res.data.records.map((record, index) => {
+            axios.get('/v1/data/getData')
+            .then(res => {
+                console.log(res.data.records)
+                // store returned RTD data in specific format
+                let preBusData = res.data.records.map((record, index) => {
+                    return {
+                        coordinates: [
+                        Number(record.longitude),
+                        Number(record.latitude),
+                        ],
+                        route: record.id,
+                        bearing: record.bearing,
+                        type: "Bus",
+                        isHostile: false,
+                        index: index, 
+                        timestamp: record.timestamp
+                    };
+                });
 
-                /////////// FOR RTD/BUS DATA ///////////
-                return {
-                    coordinates: [
-                    Number(record.longitude),
-                    Number(record.latitude),
-                    ],
-                    route: record.id,
-                    bearing: record.bearing,
-                    type: "Bus",
-                    isHostile: false,
-                    index: index, 
-                    timestamp: record.timestamp
-                };
-            });
+                preBusData = preBusData.filter(function (element) {
+                    return element !== undefined;
+                });
 
-            preBusData = preBusData.filter(function (element) {
-                return element !== undefined;
-            });
-
-            const dataAsObj = {};
+                const dataAsObj = {};
                 let sortedData = preBusData;
 
                 //////// FOR RTD DATA ////////////
                 sortedData.forEach((entry) => (dataAsObj[entry["index"]] = entry));
-                sortedData = preBusData.map(
-                (entry) => dataAsObj[entry["index"]] || entry
-                );
-    
-            setBusData(sortedData);
-
-            setLastFetchTime(moment().format("YYYY-MM-DD HH:mm:ss"));
-
-    
+                sortedData = preBusData.map((entry) => dataAsObj[entry["index"]] || entry);
+                setBusData(sortedData);
             })
-        .finally(() => {
-            dataTimer.nextTimeoutId = setTimeout(
-            () => setDataTimer({ id: dataTimer.nextTimeoutId }),
-            REFRESH_TIME
-            );
-        });
+            .finally(() => {
+                busTimer.nextTimeoutId = setTimeout(
+                () => setbusTimer({ id: busTimer.nextTimeoutId }),
+                REFRESH_TIME
+                );
+            });
         }
-
-        
         return () => {
-        clearTimeout(dataTimer.nextTimeoutId);
-        dataTimer.id = null;
+            clearTimeout(busTimer.nextTimeoutId);
+            busTimer.id = null;
         };
-    }, [dataTimer]);
+    }, [busTimer]);
 
-  function showBusData(info, event) {
-    // showPanel("Bus Details", "Screenname = " + info.object.screenName);
-    // console.log(info);
-  }
+    function showBusData(info, event) {
+        //showPanel("Bus Details", "Screenname = " + info.object.screenName);
+        console.log(info);
+    }
+    
+    const _renderBusToolTip = () => {
+        const { object, x, y } = activeBus || {};
+        return (
+          object && (
+            <div
+              style={{
+                pointerEvents: "none",
+                position: "absolute",
+                zIndex: 9999,
+                fontSize: "12px",
+                padding: "8px",
+                background: "wheat",
+                color: "#000",
+                minWidth: "160px",
+                maxHeight: "240px",
+                overflowY: "hidden",
+                left: x,
+                top: y,
+              }}
+            >
+              <h1>{object.route}</h1>
+              Bearing: {object.bearing} <br />
+              Speed: {object.speed}
+            </div>
+          )
+        );
+      };
+
+      const busTextlayer = new TextLayer({
+        id: "text-layer",
+        data: busData,
+        pickable: true,
+        getPosition: (d) => d.coordinates,
+        getText: (d) => d.route,
+        getColor: (d) => [255, 255, 255, 255],
+        getSize: 17,
+        getAngle: 0,
+        getTextAnchor: "middle",
+        getAlignmentBaseline: "center",
+        onHover: ({ object, x, y }) => {
+          setActiveBus({ object, x, y });
+        },
+      });
 
   const busLayer2 =
   busData &&
@@ -155,27 +190,12 @@ const Homepage = () => {
     lineWidthMinPixels: 1,
     getPosition: (d) => d.coordinates,
     getRadius: (d) => 55,
-    getFillColor: (d) => ([255,140,0])
-    
-    //getFillColor: (d) => (d.route % 2 ? [255, 0, 0, 144] : [0, 0, 255, 144]), // true - red (odd) : false = default
-    
-    // getFillColor: (d) =>
-    //   d.isHostile ? [0, 255, 0, 144] : [255, 255, 212, 144],
-
-    // onClick: (info, event) => showBusData(info, event),
-    // getLineColor: (d) => [255, 255, 0],
-    // onHover: ({ object, x, y }) => {
-    //   setActiveBus({ object, x, y });
-    // },
-
-    // transitions: {
-    //   getRadius: {
-    //     type: "spring",
-    //     stiffness: 0.01,
-    //     damping: 0.15,
-    //     enter: (value) => [0], // grow from size 0
-    //   },
-    // },
+    getFillColor: (d) => (d.route % 2 ? [255, 0, 0, 144] : [0, 0, 255, 144]), // true - red (odd) : false = default
+    onClick: (info, event) => showBusData(info, event),
+    getLineColor: (d) => [255, 255, 0],
+    onHover: ({ object, x, y }) => {
+      setActiveBus({ object, x, y });
+    },
   });
 
     return (
@@ -191,7 +211,7 @@ const Homepage = () => {
                         initialViewState={viewport}
                         controller
                         layers={[
-                            busLayer2
+                            busLayer2, busTextlayer
                         ]}          
                     >
                         <InteractiveMap
@@ -212,6 +232,7 @@ const Homepage = () => {
                                 position="top-left"
                             />
                         </InteractiveMap>
+                        {_renderBusToolTip()}
                     </DeckGL>
                     </Page>
                 </> 

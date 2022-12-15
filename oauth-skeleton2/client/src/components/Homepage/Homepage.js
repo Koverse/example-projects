@@ -33,10 +33,13 @@ const Homepage = () => {
     const [activeBus, setActiveBus] = useState({});
 
     // ADSB Data
+    const [flightData, setFlightData] = useState(null);
 
     // Twitter Data
+    const [tweetData, setTweetData] = useState(null);
 
     // Port Data
+    const [portData, setPortData] = useState(null);
 
     // alert system
     const [watchRadiusData, setWatchRadiusData] = useState(null);
@@ -82,15 +85,39 @@ const Homepage = () => {
     const logout = () => {
         localStorage.removeItem('user');
         const loggedInState = axios.get("/logout");
-        console.log("loggedInState: " + loggedInState)
         // logout and return to login page
         navigate("/");
         window.location.reload();
     }
 
+    const haversineDistance = ([lat1, lon1], [lat2, lon2], isMiles = false) => {
+      const toRadian = (angle) => (Math.PI / 180) * angle;
+      const distance = (a, b) => (Math.PI / 180) * (a - b);
+      const RADIUS_OF_EARTH_IN_KM = 6371;
+  
+      const dLat = distance(lat2, lat1);
+      const dLon = distance(lon2, lon1);
+  
+      lat1 = toRadian(lat1);
+      lat2 = toRadian(lat2);
+  
+      // Haversine Formula
+      const a =
+        Math.pow(Math.sin(dLat / 2), 2) +
+        Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+      const c = 2 * Math.asin(Math.sqrt(a));
+  
+      let finalDistance = RADIUS_OF_EARTH_IN_KM * c;
+  
+      if (isMiles) {
+        finalDistance /= 1.60934;
+      }
+  
+      return finalDistance;
+    };
+
     // create websocket connection
     useEffect(() => {
-      // const newSocket = io("wss://copdemo.koverse.com");
       const newSocket = io("ws://localhost:3002");
       setSocket(newSocket);
       console.log(socket);
@@ -113,12 +140,8 @@ const Homepage = () => {
       });
 
       newSocket.on("hide_alert", (data) => {
-        console.log(
-          "Hide alert Panel for all subscribed to Alert: " + data.sender
-        );
         // if alert's senderID != user's newSocket id, hide panel
         if (data.sender != newSocket.id) {
-          console.log("data.sender != newSocket.id");
           // hide current panel showing in user page
           var infoPanelDiv = document.getElementById("infoPanel");
           infoPanelDiv.style.visibility = "collapse";
@@ -153,22 +176,8 @@ const Homepage = () => {
       var alertDataIndex = alertData.findIndex(
         (alertObject) => alertObject.socketID === event.target.value
       );
-      console.log(alertData[alertDataIndex]);
-
       console.log("Subscribing to Alert #: " + event.target.value);
-      console.log(
-        "Latitude recognized for SelectedAlert: " + alertData[alertDataIndex].lat
-      );
-      console.log(
-        "Longitude recognized for SelectedAlert?: " +
-          alertData[alertDataIndex].lon
-      );
-      console.log(
-        "Radius recognized for SelectedAlert?: " +
-          alertData[alertDataIndex].radius
-      );
-
-      // need to add lat, long and radius key-value pairs
+      // add lat, long and radius key-value pairs?
       socket.emit("subscribe_to_alert", {
         socketID: event.target.value,
         alertRoomName: "Alert Room " + event.target.value,
@@ -229,8 +238,6 @@ const Homepage = () => {
       infoPanelDiv.style.visibility = "collapse";
 
       var radiusSize = prompt("Please enter radius size in kilometers", "5");
-      console.log("created Radius!");
-
       var center = [lon, lat];
       var radius = Number(radiusSize);
       var options = {
@@ -244,12 +251,11 @@ const Homepage = () => {
       setGeoJsonCircle(watchRadius);
       // sets radius of proximity alert and is the current active alert
       setWatchRadiusData({ radius, lat, lon });
-      // websocket updates
+
       console.log(`Subscribe to: ${socket.id}`);
       // add newly created alert to alertData array of objects
       if (alertCount == 0) {
         setAlertCount(alertCount + 1);
-        console.log("AlertCount should equal 1 but it equals: " + alertCount);
         // trigger new alert created event
         socket.emit("new_alert_create", {
           socketID: socket.id,
@@ -258,7 +264,6 @@ const Homepage = () => {
           lon: lon,
           radius: radius,
         });
-        //console.log(`Updated lat: ${lat} and lon: ${lon}`);
         setAlertData((oldAlertData) => [
           ...oldAlertData,
           {
@@ -270,19 +275,13 @@ const Homepage = () => {
           },
         ]);
       } else if (alertCount > 0 && selectedAlert === socket.id) {
-        console.log(`Alert lat  and lon for ${socket.id} has been updated`);
-
         var alertDataIndex = alertData.findIndex(
           (alertObject) => alertObject.socketID === socket.id
         );
 
-        // update corresponding alertData object
+        // update corresponding alertData object latitude, longitude, and (radius?)
         alertData[alertDataIndex].lat = lat;
         alertData[alertDataIndex].lon = lon;
-
-        console.log("Updated lat: " + alertData[alertDataIndex].lat);
-        console.log("Updated lon: " + alertData[alertDataIndex].lon);
-        console.log("Updated radius: " + alertData[alertDataIndex].radius);
       }
     }
 
@@ -291,7 +290,6 @@ const Homepage = () => {
         // stores jwt and gets credentials
         axios.get("/getCredentials")
         .then((res) => {
-            console.log("received credentials: ");
             localStorage.setItem("user", JSON.stringify(res.data));
             // store username and email in local storage 
             setUserData(res.data)
@@ -359,6 +357,47 @@ const Homepage = () => {
             busTimer.id = null;
         };
     }, [busTimer]);
+
+    // Check if alert needs to be triggered after data has moved or new alert has been subscribed to
+    useEffect(() => {
+      console.log("data or radius change");
+      // if (busData && tweetData && flightData) {
+      if (busData) {
+        console.log("entered busData = true")
+        // only listen to current watchRadiusData as long as the selectedAlert is for this client socket
+        if (watchRadiusData && selectedAlert === socket.id) {
+          console.log("Fire off an alert");
+          //const mergedData = [...busData, ...tweetData, ...flightData];
+          const mergedData = [...busData];
+          const center = [watchRadiusData.lat, watchRadiusData.lon];
+          const alerts = mergedData.filter((entity) => {
+            if (entity.coordinates.length > 0) {
+              const entityCoords = [entity.coordinates[1], entity.coordinates[0]];
+              // distance between the entity object and the center of the alert radius
+              const distance = haversineDistance(center, entityCoords, false);
+  
+              // entity is within the proximity alert radius -> TRIGGER ALERT
+              if (distance <= Number(watchRadiusData.radius)) {
+                proximityAlert(entity);
+  
+                sendAlertTrigger();
+  
+                // else, socket.id is listening to a different alert than itself and we
+                // will NOT be broadcasting anything
+                return entity;
+              }
+            }
+          });
+          console.log("alerts updated: ", alerts);
+          // if alerts is empty THEN call hidePanel of current client socket
+          if (alerts.length === 0) {
+            hidePanel();
+          }
+          setActiveAlerts(alerts);
+        }
+      }
+    }, [busData, tweetData, flightData, watchRadiusData]);
+
 
     function showBusData(info, event) {
         //showPanel("Bus Details", "Screenname = " + info.object.screenName);
@@ -485,25 +524,26 @@ const Homepage = () => {
             {userData && 
                 <>
                     <Page user={userData}>
-                    <div
-                      id="infoPanel"
-                      style={{
-                        position: "absolute",
-                        top: 175,
-                        left: 10,
-                        zIndex: 999,
-                        backgroundColor: "salmon",
-                        paddingTop: "15px",
-                        paddingBottom: "15px",
-                        paddingRight: "10px",
-                        paddingLeft: "10px",
-                        borderRadius: "5px",
-                        visibility: "collapse",
-                      }}
-                    >
-                      <h1 id="infoHeadline">Proximity Alert</h1>
-                      <div id="infoPanelText" />
-                    </div>
+                    
+                        <div
+                        id="infoPanel"
+                        style={{
+                          position: "absolute",
+                          top: 175,
+                          left: 10,
+                          zIndex: 999,
+                          backgroundColor: "salmon",
+                          paddingTop: "15px",
+                          paddingBottom: "15px",
+                          paddingRight: "10px",
+                          paddingLeft: "10px",
+                          borderRadius: "5px",
+                          visibility: "collapse",
+                        }}
+                      >
+                        <h1 id="infoHeadline">Proximity Alert</h1>
+                        <div id="infoPanelText" />
+                      </div>
                     <div
                       ref={geocoderContainerRef}
                       style={{ position: "absolute", top: 15, left: 275, zIndex: 9999 }}

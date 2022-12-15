@@ -14,6 +14,7 @@ async function getData(req, res, next) {
         //"expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
         "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\"",
         "limit": 10,
+        "limit": 200,
         "offset": 0
       },
       {

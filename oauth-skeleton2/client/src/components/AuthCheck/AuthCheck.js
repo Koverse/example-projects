@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import axios from 'axios';
 import {useLocation} from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -18,14 +18,11 @@ const AuthCheck = () => {
     
       useEffect(() => {
 
-        // get query params of /auth/koverse/?code and send it/add it to axios callback?
-        // can only be called once immediately from KDP redirect since that is the only way params can be passed
-        axios.get("http://localhost:5000/callback", {params: {code: code}})
+        // get query params of /auth/koverse/?code and send it to callback query to get access token
+        axios.get("/callback", {params: {code: code}})
         .then(res => 
         {
-            console.log("Calling callback function, token: ")
-            // store token in local storage
-            localStorage.setItem("token", res.data.access_token);
+            // token successfully stored as cookie
             navigate("/auth/success");
             window.location.reload();
         })

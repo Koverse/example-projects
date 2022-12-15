@@ -10,11 +10,9 @@ function AuthContextProvider(props) {
         // get users loggedIn state as a response from server
         if (localStorage.getItem("user") !== null)
         {
-            console.log("user is logged in")
             setLoggedIn(true);
         }
         else if (localStorage.getItem("user") === null) {
-            console.log("user is NOT logged in")
             setLoggedIn(false);
         }
 

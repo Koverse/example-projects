@@ -33,8 +33,6 @@ const MenuAppBar = ({ user, toggleNavDrawer }) => {
     localStorage.removeItem('user');
     //call logout endpoint
     const loggedInState = axios.get("/logout");
-    console.log("loggedInState: " + loggedInState)
-
     navigate("/");
     window.location.reload();
   }

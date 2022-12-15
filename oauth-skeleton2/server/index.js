@@ -49,14 +49,12 @@ app.use((err, req, res, next) => {
 ////////////// SOCKETS ////////////////
 
 const server = http.createServer(app);
-// console.log(server)
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
-// console.log(io)
 let users = [];
 
 io.on("connection", (socket) => {
@@ -96,13 +94,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_hide_alert", (data) => {
-    // console.log(
-    //   `Message all subscribers that alert ${data.sender} has been HIDDEN!`
-    // );
-    // remember data.to = "Alert " + data.sender
     console.log("Alert Room Name: " + data.to);
-    //console.log("Alert Type: " + data.content); // empty ""
-
     socket.to(data.to).emit("hide_alert", {
       sender: data.sender,
     });
@@ -116,8 +108,6 @@ io.on("connection", (socket) => {
     console.log(
       `user ${data.socketID} has the following alertRoomName: ${data.alertRoomName} `
     );
-    //console.log(`Alert Center Data: ${data.alertCenter} and AlertRadius Data: ${data.alertRadius} `);
-
     socket.broadcast.emit("newAlertCreated", {
       socketID: data.socketID,
       alertRoomName: data.alertRoomName,
@@ -129,9 +119,7 @@ io.on("connection", (socket) => {
 
   // call when a client unsubscribes from an alert
   socket.on("unsubscribe", (data) => {
-    console.log("client/alert# unsubscribed from alert #");
     socket.leave(data.socketID);
-
     // this event should remove any alertPanels and any active GeoJsonCircles that are rendered on a map
   });
 

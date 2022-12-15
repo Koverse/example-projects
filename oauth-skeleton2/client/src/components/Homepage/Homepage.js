@@ -316,7 +316,7 @@ const Homepage = () => {
         {
             axios.get('/v1/data/getData')
             .then(res => {
-                console.log(res.data.records)
+                //console.log(res.data.records)
                 // store returned RTD data in specific format
                 let preBusData = res.data.records.map((record, index) => {
                     return {
@@ -388,7 +388,6 @@ const Homepage = () => {
               }
             }
           });
-          console.log("alerts updated: ", alerts);
           // if alerts is empty THEN call hidePanel of current client socket
           if (alerts.length === 0) {
             hidePanel();
@@ -427,7 +426,6 @@ const Homepage = () => {
 
     function proximityAlert(entity) {
       console.log("PROXIMITY ALERT");
-      console.log(entity);
       // TODO: make this into a React control
       showPanel("a", "B");
     }
@@ -592,8 +590,6 @@ const Homepage = () => {
                           let lat = info.lngLat[1];
               
                           createRadius(lat, lon);
-              
-                          // console.log(lat, lon);
                         }}
                         controller
                         layers={[

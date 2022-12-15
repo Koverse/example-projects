@@ -24,8 +24,6 @@ const client = new AuthorizationCode({
       code,
 	  redirect_uri: callbackUrl,
     };
-
-	console.log('CODE', code)
     try {
       // get accesstoken from authorization code
       const accessToken = await client.getToken(options);

@@ -5,8 +5,6 @@ const axios = require('axios');
 async function getData(req, res, next) {
     try 
     {
-  
-      console.log("Reading jwt cookie in /getData: " + req.cookies.jwt)
       // gets data from the last 5 minutes every 10 seconds
       let now = moment().subtract("5", "minutes").format("X")
       
@@ -15,7 +13,7 @@ async function getData(req, res, next) {
         "datasetId": "9b452877-a363-4303-9fa8-15672a1f62e1",
         //"expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\" where \"timestamp\" > " + now,
         "expression": "SELECT * FROM \"9b452877-a363-4303-9fa8-15672a1f62e1\"",
-        "limit": 200,
+        "limit": 10,
         "offset": 0
       },
       {

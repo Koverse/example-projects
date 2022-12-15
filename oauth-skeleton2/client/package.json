@@ -9,7 +9,10 @@
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^13.5.0",
+    "@turf/circle": "^6.5.0",
+    "@turf/turf": "^6.5.0",
     "axios": "^0.26.1",
+    "chroma-js": "^2.4.2",
     "client-oauth2": "^4.3.3",
     "deck.gl": "^8.1.7",
     "jwt-decode": "^3.1.2",
@@ -25,6 +28,7 @@
     "react-router-dom": "^6.2.2",
     "react-scripts": "^5.0.0",
     "react-simple-oauth2-login": "^0.5.3",
+    "socket.io-client": "^4.5.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

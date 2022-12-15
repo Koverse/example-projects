@@ -19,7 +19,6 @@ const client = new AuthorizationCode({
 });
 
   async function callback(req, res, next) {
-    console.log("Entered Callback route")
     const { code } = req.query;
     const options = {
       code,
@@ -28,9 +27,9 @@ const client = new AuthorizationCode({
 
 	console.log('CODE', code)
     try {
+      // get accesstoken from authorization code
       const accessToken = await client.getToken(options);
 
-      console.log('The resulting token: ', accessToken.token);
       loggedInState = true;
 
       res.cookie('accessToken', accessToken.token.access_token, { httpOnly: true });
@@ -55,9 +54,6 @@ async function loggedIn(req, res, next) {
   }
 
 async function getCredentials(req, res, next) {
-    console.log("entered /getCred")
-    console.log("Reading accessToken cookie in /getCred: " + req.cookies.accessToken)
-
     // returns user's credentials using accessToken received after KDP4 login
     axios.post('https://api.staging.koverse.com/authentication', 
         {

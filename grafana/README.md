@@ -8,95 +8,66 @@ Login
 Default Username: admin
 Default Password: admin
 
-Enter in replacement password (putting admin back in will still work)
+### Hands-on Tutorial: Connecting Koverse Data Platform (KDP) with Grafana
 
-On left side of screen look for the “gear” icon, click on it.
+In this tutorial, we'll walk through the process of connecting the Koverse Data Platform (KDP) with Grafana, a popular data visualization tool, to create interactive visualizations from KDP datasets.
 
-In the “Configuration” screen, click on the “Plugins” tab
+**Prerequisites:**
 
-Enter “infinity” in the search box, click on the “infinity” plugin box
+- Access to a Koverse Data Platform instance
+- Grafana installed and running (version 7.x or newer)
+- Grafana Infinity Datasource plugin installed
 
-On the Plugins/Infinity page, click the “install” button
+**Step 1: Configure the Grafana Infinity Datasource**
 
-Hover over the “plus” sign on the left side of the screen
-	Press “Create” if you want to make a new panel from the ground up following the steps below
-	Press “Import” and select the “dashboard.json” in the project files if you want to import an example
+1. Open Grafana in your web browser and log in using your credentials.
+2. Click on the gear icon (Configuration) on the left side of the screen.
+3. In the Configuration menu, click on "Data sources."
+4. Click on the "Add data source" button and search for "Infinity." Select the Infinity Datasource plugin from the list.
+5. Configure the Infinity Datasource by providing a name and selecting "JSON" as the Data Format.
 
-Click “Add a new panel” box
+**Step 2: Create a new Grafana Dashboard**
 
-Datasource: 
-Infinity Plugin
+1. Click on the "+" icon (Create) on the left side of the screen.
+2. Select "Dashboard" to create a new dashboard.
+3. Click on "Add an empty panel."
 
-Type:
-JSON
+**Step 3: Configure the Panel to Use KDP Data**
 
-Source:
-URL
+1. In the panel editor, set the Data source to the Infinity Datasource you configured in Step 1.
+2. Set the Type to "JSON."
+3. Set the Source to "URL."
+4. Enter the KDP API query URL in the following format: `https://<kdp_instance_url>/query`
+5. Click on the "Http Method, Query param, Headers" button.
+6. Select the appropriate HTTP method (e.g., POST) and enter the API request body containing the query.
 
-Format:
-Table
+Example API request body:
 
-Example url:
-
-https://api.app.koverse.com/query
-
-Click on the “Http Method, Query param, Headers” button
-
-In the right side dialog, select the “Method” that matches your API call
-
-Place the body of the API request in the text box below it.
-
-Example Bodies:
-
-#1 
+```json
 {
-      "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > 1651770919046",
-      "limit": 200,
-      "offset": 0
+  "datasetId": "<dataset_id>",
+  "expression": "SELECT * FROM \"<dataset_id>\" WHERE \"field\" > value",
+  "limit": 200,
+  "offset": 0
 }
+```
 
-#2 (contains Grafana global variables)
-{
-      "datasetId": "c83a25f3-26ff-487c-a5cf-b9ba6301d518",
-      "expression": "SELECT * FROM \"c83a25f3-26ff-487c-a5cf-b9ba6301d518\" where \"flight_aware_ts\" > ${__from:date:seconds}",
-      "limit": 2000,
-      "offset": 0
-}
+7. In the Headers tab, add a custom header for Authorization.
 
-In the right side dialog, select the “Headers” tab
+Example Header:
 
-Add a custom header
+Key: `Authorization`
+Value: `Bearer <your_koverse_access_token>`
 
-Example Header
+**Step 4: Configure the Data Visualization**
 
-Key: Authorization
+1. In the panel editor, set the Rows / Root path to "records."
+2. Configure the Columns by mapping KDP dataset fields to Grafana columns. Use the "Selector" to choose the field in the KDP dataset and provide a display name for the Grafana table.
+3. Set the data type for each column in the "format as" dropdown.
 
-Value: eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJlbWFpbCI6Im5hdGhhbnRpc2RhbGVkb2xsYWhAa292ZXJzZS5jb20iLCJpYXQiOjE2NTE2OTIwNDUsImV4cCI6MTY1MTc3ODQ0NSwiaXNzIjoia292ZXJzZSIsInN1YiI6IjI1YWYzNTlmLTkwOWYtNGVlMS04NzE4LTYyZDczZWFkNDY0YyIsImp0aSI6IjQyMjliNzdkLWYyZTQtNGRiYS04OWNlLTZkY2QzNWJiYzMyMyJ9.AzEF73ucd-qK8IOkYWHdQJKiHxkKThGnn7Cz_2WD5GE
+**Step 5: Save and View the Dashboard**
 
-(Pull the “value” from KDP4, 
-right click on the page and select “Inspect Element” 
-select the “Application” tab
-Look on the left side and click on “Cookies” to open up the drop down
-Select the cookie matching the name of the KDP4 site
-Look for “koverse-jwt” on the right side table
-Copy the value and that will be what you place in the header)
+1. Once you've finished configuring the panel, click on the "Apply" button to save the changes.
+2. Close the panel editor and view your new Grafana dashboard with KDP data.
 
-
-Example Rows / Roots: 
-records
-
-Columns:
-(These will be the fields you want to display in the dashboard)
-(Selector is the name of the record in KDP4)
-(The second box after “as” is the name you’ll be using for the table display)
-(The dropdown box after “format as” is the typing of the record field in KDP4 and how Grafana will treat the columns in the record)
-
-Once you’ve finished adding and customizing all the fields above, click on the “Query Inspector” button on the right side of the area where you selected the “Datasource” type. 
-(If you don’t see it, the query box underneath the panel visual is actually scrollable, so you may have scrolled past it and hidden it from yourself) 
-
-In the right side dialog hit the “refresh” button
-
-You should now see the results of your query.
-
-If you back out of the query and look at your panel, you should either see the results of your query being displayed in the panel or it will ask that you alter your columns to add a type of data, such as a time column or number column, adjust accordingly. 
+Now you have successfully connected KDP to Grafana and created a dashboard with an interactive visualization using KDP data. You can create more panels and visualizations by following the same steps, exploring different datasets and visualization types to gain insights from your KDP data.

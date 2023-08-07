@@ -19,15 +19,6 @@ services:
       my-network-name:
         aliases:
           - grafana
-  oauth-server:
-    container_name: userinfo
-    image: koverse/userinfo
-    ports:
-      - '3005:3005'
-    networks:
-      my-network-name:
-        aliases:
-          - userinfo  
 
 volumes:
   grafana_vol:

@@ -9,8 +9,8 @@ from airflow.decorators import dag, task
 
 CSV_PATH = '/opt/airflow/dags/files/employees.csv'
 
-DATASET_ID = ''
-TOKEN = Variable.get("kdp_access_token")
+DATASET_ID = Variable.get("employee_dataset_id")
+
 
 def get_json():
     data = []
@@ -21,13 +21,17 @@ def get_json():
             data.append(row)
     return json.dumps(data)
 
-def write_to_kdp4(jsonData, datasetId, token):
+def write_to_kdp4(jsonData, datasetId):
+    token = Variable.get("kdp_access_token")
+    print(token)
     url = 'https://api.app.koverse.com/write/' + datasetId
     authValue = 'Bearer ' + token
     headers = {"Content-Type": "application/json",
                "Authorization": authValue}
     
     print(url)
+    print(headers)
+    print(authValue)
     response = requests.post(url, data=jsonData, headers=headers, timeout=10)
     return response
 
@@ -53,7 +57,7 @@ def Etl():
     def write_data():
         data = get_json()
         print(data)
-        response = write_to_kdp4(data, DATASET_ID, TOKEN)
+        response = write_to_kdp4(data, DATASET_ID)
         print(response.content)
         print("status: ", response)
         if response.status_code == 200:

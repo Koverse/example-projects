@@ -3,7 +3,7 @@ version: "3"
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana-enterprise:8.4.4
+    image: grafana/grafana:10.0.3
     environment:
       - "GF_SECURITY_ADMIN_PASSWORD=admin"
       - GF_USERS_ALLOW_SIGN_UP=true
